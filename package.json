@@ -1,0 +1,42 @@
+{
+  "name": "vendure-backend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "ts-node ./src/index.ts",
+    "dev:worker": "ts-node ./src/index-worker.ts",
+    "dev:dashboard": "vite --clearScreen false",
+    "dev": "concurrently --kill-others \"npm.cmd run dev:server\" \"npm.cmd run dev:worker\"",
+    "build": "tsc",
+    "build:dashboard": "vite build",
+    "start:server": "node ./dist/index.js",
+    "start:server:prod": "node ./dist/run-migrations.js && node ./dist/index.js",
+    "start:worker": "node ./dist/index-worker.js",
+    "start": "concurrently \"npm.cmd run start:server\" \"npm.cmd run start:worker\"",
+    "railway:build": "npm run build",
+    "railway:migrate": "node ./dist/run-migrations.js",
+    "clean": "ts-node ./src/clean-demo-data.ts",
+    "seed:collections": "ts-node ./src/seed-collections.ts",
+    "seed:channel-config": "ts-node ./src/seed-channel-config.ts",
+    "seed:test-product": "ts-node ./src/seed-test-product.ts",
+    "migrate": "node --require ts-node/register ./src/run-migrations.ts"
+  },
+  "dependencies": {
+    "@vendure/asset-server-plugin": "3.6.4",
+    "@vendure/core": "3.6.4",
+    "@vendure/dashboard": "3.6.4",
+    "@vendure/email-plugin": "3.6.4",
+    "@vendure/graphiql-plugin": "3.6.4",
+    "better-sqlite3": "^12.11.1",
+    "dotenv": "17.4.2",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.5",
+    "@vendure/cli": "3.6.4",
+    "concurrently": "10.0.3",
+    "ts-node": "10.9.2",
+    "typescript": "5.8.2",
+    "vite": "7.3.6"
+  }
+}

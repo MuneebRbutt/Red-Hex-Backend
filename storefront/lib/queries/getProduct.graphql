@@ -1,0 +1,38 @@
+query GetProduct($slug: String!) {
+  product(slug: $slug) {
+    id
+    name
+    slug
+    description
+    featuredAsset {
+      id
+      preview
+    }
+    assets {
+      id
+      preview
+    }
+    variants {
+      id
+      name
+      sku
+      priceWithTax
+      stockLevel
+      options {
+        id
+        code
+        name
+        group {
+          id
+          code
+          name
+        }
+      }
+    }
+    collections {
+      id
+      name
+      slug
+    }
+  }
+}

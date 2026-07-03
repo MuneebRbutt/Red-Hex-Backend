@@ -1,0 +1,85 @@
+query GetActiveOrder {
+  activeOrder {
+    id
+    state
+    totalQuantity
+    totalWithTax
+    subTotalWithTax
+    shippingWithTax
+    lines {
+      id
+      quantity
+      unitPriceWithTax
+      linePriceWithTax
+      productVariant {
+        id
+        name
+        sku
+        priceWithTax
+        product {
+          id
+          name
+          slug
+          featuredAsset {
+            id
+            preview
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation AddItemToOrder($variantId: ID!, $quantity: Int!) {
+  addItemToOrder(productVariantId: $variantId, quantity: $quantity) {
+    ... on Order {
+      id
+      totalQuantity
+      totalWithTax
+      lines {
+        id
+        quantity
+        linePriceWithTax
+        productVariant {
+          id
+          name
+        }
+      }
+    }
+    ... on ErrorResult {
+      errorCode
+      message
+    }
+  }
+}
+
+mutation RemoveOrderLine($orderLineId: ID!) {
+  removeOrderLine(orderLineId: $orderLineId) {
+    ... on Order {
+      id
+      totalQuantity
+      lines {
+        id
+        quantity
+      }
+    }
+    ... on ErrorResult {
+      errorCode
+      message
+    }
+  }
+}
+
+mutation AdjustOrderLine($orderLineId: ID!, $quantity: Int!) {
+  adjustOrderLine(orderLineId: $orderLineId, quantity: $quantity) {
+    ... on Order {
+      id
+      totalQuantity
+      totalWithTax
+    }
+    ... on ErrorResult {
+      errorCode
+      message
+    }
+  }
+}

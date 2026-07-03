@@ -1,0 +1,35 @@
+query GetCollection($slug: String!, $take: Int, $skip: Int) {
+  collection(slug: $slug) {
+    id
+    name
+    slug
+    description
+    featuredAsset {
+      id
+      preview
+    }
+    productVariants(options: { take: $take, skip: $skip }) {
+      totalItems
+      items {
+        id
+        name
+        priceWithTax
+        stockLevel
+        product {
+          id
+          name
+          slug
+          description
+          featuredAsset {
+            id
+            preview
+          }
+          assets {
+            id
+            preview
+          }
+        }
+      }
+    }
+  }
+}

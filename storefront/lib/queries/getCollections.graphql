@@ -1,0 +1,20 @@
+query GetCollections($take: Int, $skip: Int) {
+  collections(options: { take: $take, skip: $skip }) {
+    totalItems
+    items {
+      id
+      name
+      slug
+      description
+      featuredAsset {
+        id
+        preview
+      }
+      parent {
+        id
+        name
+        slug
+      }
+    }
+  }
+}

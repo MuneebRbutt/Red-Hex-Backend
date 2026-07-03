@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-body), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), sans-serif;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-solid {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    color: #000000;
+    font-family: var(--font-heading), sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.75rem;
+    border: 1px solid #ffffff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .btn-solid:hover {
+    background-color: #c9a84c;
+    border-color: #c9a84c;
+    color: #000000;
+  }
+
+  .btn-outlined {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #ffffff;
+    font-family: var(--font-heading), sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.75rem 1.75rem;
+    border: 1px solid #ffffff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .btn-outlined:hover {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
+  /* Cards */
+  .card-industrial {
+    background-color: #111111;
+    border: 1px solid #1a1a1a;
+    color: #ffffff;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .card-industrial:hover {
+    border-color: #c9a84c;
+  }
+}
+
+/* Animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 25s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
