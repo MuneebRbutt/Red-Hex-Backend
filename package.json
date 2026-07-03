@@ -12,7 +12,7 @@
     "start:server": "node ./dist/index.js",
     "start:server:prod": "node ./dist/run-migrations.js && node ./dist/index.js",
     "start:worker": "node ./dist/index-worker.js",
-    "start": "concurrently \"npm run start:server\" \"npm run start:worker\"",
+    "start": "npm run start:server",
     "railway:build": "npm run build",
     "railway:migrate": "node ./dist/run-migrations.js",
     "clean": "ts-node ./src/clean-demo-data.ts",
