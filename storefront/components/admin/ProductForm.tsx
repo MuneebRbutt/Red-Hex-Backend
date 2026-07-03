@@ -6,22 +6,6 @@ import { assignProductToCollection, assignProductToDefaultChannel } from '@/lib/
 import { adminClientFetch } from '@/lib/admin/client';
 import { type AdminCollection } from '@/lib/admin/collections';
 
-const COLLECTIONS_QUERY = `
-query GetCollections {
-  collections(options: { take: 100 }) {
-    items {
-      id
-      name
-      slug
-      parent {
-        id
-        name
-      }
-    }
-  }
-}
-`;
-
 const PRODUCT_QUERY = `
 query ProductForEdit($id: ID!) {
   product(id: $id) {
@@ -30,7 +14,7 @@ query ProductForEdit($id: ID!) {
     slug
     description
     featuredAsset { id preview }
-    collections { id name parent { id name } }
+    collections { id name slug parent { id name slug } }
     variants {
       id
       sku
@@ -67,47 +51,72 @@ mutation UpdateProductVariant($input: UpdateProductVariantInput!) {
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const FALLBACK_COLLECTIONS: AdminCollection[] = [
-  { id: "fallback-1", name: "Sportswear", slug: "sportswear", parent: { id: "root", name: "__root_collection__" } },
-  { id: "f-1-1", name: "Soccer Uniform", slug: "soccer-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-  { id: "f-1-2", name: "Baseball Uniform", slug: "baseball-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-  { id: "f-1-3", name: "American Football Uniform", slug: "american-football-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-  { id: "f-1-4", name: "Basketball Uniform", slug: "basketball-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-  { id: "f-1-5", name: "Ice Hockey Uniform", slug: "ice-hockey-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-  { id: "f-1-6", name: "Tennis Uniform", slug: "tennis-uniform", parent: { id: "fallback-1", name: "Sportswear" } },
-
-  { id: "fallback-2", name: "Casual Wear", slug: "casual-wear", parent: { id: "root", name: "__root_collection__" } },
-  { id: "f-2-1", name: "Tracksuits", slug: "tracksuits", parent: { id: "fallback-2", name: "Casual Wear" } },
-  { id: "f-2-2", name: "Hoodies", slug: "hoodies", parent: { id: "fallback-2", name: "Casual Wear" } },
-  { id: "f-2-3", name: "Sweatshirt", slug: "sweatshirt", parent: { id: "fallback-2", name: "Casual Wear" } },
-  { id: "f-2-4", name: "Sweat Pants", slug: "sweat-pants", parent: { id: "fallback-2", name: "Casual Wear" } },
-  { id: "f-2-5", name: "T-Shirts", slug: "t-shirts", parent: { id: "fallback-2", name: "Casual Wear" } },
-
-  { id: "fallback-3", name: "Jacket Collections", slug: "jacket-collections", parent: { id: "root", name: "__root_collection__" } },
-
-  { id: "fallback-4", name: "Gymwear & Activewear", slug: "gymwear-activewear", parent: { id: "root", name: "__root_collection__" } },
-  { id: "f-4-1", name: "Tank Top", slug: "tank-top", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-2", name: "Compression Shirts", slug: "compression-shirts", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-3", name: "Dry-Fit T-Shirts", slug: "dry-fit-t-shirts", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-4", name: "Gym Shorts", slug: "gym-shorts", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-5", name: "Track Jackets", slug: "track-jackets", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-6", name: "Wrist Straps", slug: "wrist-straps", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-7", name: "Headbands", slug: "headbands", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-  { id: "f-4-8", name: "Gym Socks", slug: "gym-socks", parent: { id: "fallback-4", name: "Gymwear & Activewear" } },
-
-  { id: "fallback-5", name: "Safety & Work Wear", slug: "safety-work-wear", parent: { id: "root", name: "__root_collection__" } },
-  { id: "f-5-1", name: "Safety Vests", slug: "safety-vests", parent: { id: "fallback-5", name: "Safety & Work Wear" } },
-  { id: "f-5-2", name: "Construction Suits", slug: "construction-suits", parent: { id: "fallback-5", name: "Safety & Work Wear" } },
-  { id: "f-5-3", name: "Safety Jackets", slug: "safety-jackets", parent: { id: "fallback-5", name: "Safety & Work Wear" } },
+const CATEGORIES = [
+  {
+    id: "sportswear",
+    name: "Sportswear",
+    slug: "sportswear",
+    subcategories: [
+      { id: "soccer-uniform", name: "Soccer Uniform", slug: "soccer-uniform" },
+      { id: "baseball-uniform", name: "Baseball Uniform", slug: "baseball-uniform" },
+      { id: "american-football-uniform", name: "American Football Uniform", slug: "american-football-uniform" },
+      { id: "basketball-uniform", name: "Basketball Uniform", slug: "basketball-uniform" },
+      { id: "ice-hockey-uniform", name: "Ice Hockey Uniform", slug: "ice-hockey-uniform" },
+      { id: "tennis-uniform", name: "Tennis Uniform", slug: "tennis-uniform" }
+    ]
+  },
+  {
+    id: "casual-wear",
+    name: "Casual Wear",
+    slug: "casual-wear",
+    subcategories: [
+      { id: "tracksuits", name: "Tracksuits", slug: "tracksuits" },
+      { id: "hoodies", name: "Hoodies", slug: "hoodies" },
+      { id: "sweatshirt", name: "Sweatshirt", slug: "sweatshirt" },
+      { id: "sweat-pants", name: "Sweat Pants", slug: "sweat-pants" },
+      { id: "t-shirts", name: "T-Shirts", slug: "t-shirts" }
+    ]
+  },
+  {
+    id: "jacket-collections",
+    name: "Jacket Collections",
+    slug: "jacket-collections",
+    subcategories: []
+  },
+  {
+    id: "gymwear-activewear",
+    name: "Gymwear & Activewear",
+    slug: "gymwear-activewear",
+    subcategories: [
+      { id: "tank-top", name: "Tank Top", slug: "tank-top" },
+      { id: "compression-shirts", name: "Compression Shirts", slug: "compression-shirts" },
+      { id: "dry-fit-t-shirts", name: "Dry-Fit T-Shirts", slug: "dry-fit-t-shirts" },
+      { id: "gym-shorts", name: "Gym Shorts", slug: "gym-shorts" },
+      { id: "track-jackets", name: "Track Jackets", slug: "track-jackets" },
+      { id: "wrist-straps", name: "Wrist Straps", slug: "wrist-straps" },
+      { id: "headbands", name: "Headbands", slug: "headbands" },
+      { id: "gym-socks", name: "Gym Socks", slug: "gym-socks" }
+    ]
+  },
+  {
+    id: "safety-work-wear",
+    name: "Safety & Work Wear",
+    slug: "safety-work-wear",
+    subcategories: [
+      { id: "safety-vests", name: "Safety Vests", slug: "safety-vests" },
+      { id: "construction-suits", name: "Construction Suits", slug: "construction-suits" },
+      { id: "safety-jackets", name: "Safety Jackets", slug: "safety-jackets" }
+    ]
+  }
 ];
 
 export default function ProductForm({ productId }: { productId?: string }) {
   const router = useRouter();
   const editing = !!productId;
   const [loading, setLoading] = useState(false);
-  const [collections, setCollections] = useState<AdminCollection[]>([]);
+  const [categories] = useState(CATEGORIES);
   const [error, setError] = useState('');
-  const [collectionsError, setCollectionsError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -120,34 +129,10 @@ export default function ProductForm({ productId }: { productId?: string }) {
   const [variantId, setVariantId] = useState<string>('');
   const [assetId, setAssetId] = useState<string>('');
 
-  const mainCategories = useMemo(() => {
-    return collections.filter(c => !c?.parent || c.parent.name === '__root_collection__');
-  }, [collections]);
-
-  const subcategories = useMemo(() => {
-    return collections.filter((c) => c?.parent && c.parent.name !== '__root_collection__' && c.parent.id === categoryId);
-  }, [collections, categoryId]);
-
-  const selectedCategory = mainCategories.find(c => c.id === categoryId);
-  const isJacketCollections = selectedCategory?.name === 'Jacket Collections';
-
-  useEffect(() => {
-    adminClientFetch<{ collections: { items: AdminCollection[] } }>(COLLECTIONS_QUERY)
-      .then((data) => {
-        console.log('Raw collections response:', data);
-        if (!data?.collections?.items?.length) {
-          setCollectionsError('No collections returned from API');
-          setCollections(FALLBACK_COLLECTIONS);
-        } else {
-          setCollections(data.collections.items);
-        }
-      })
-      .catch((err) => {
-        console.error('Collections fetch error:', err);
-        setCollectionsError((err as Error).message);
-        setCollections(FALLBACK_COLLECTIONS);
-      });
-  }, []);
+  const mainCategories = categories;
+  const selectedCategory = categories.find(c => c.id === categoryId);
+  const subcategories = selectedCategory?.subcategories || [];
+  const isJacketCollections = selectedCategory?.id === 'jacket-collections';
 
   useEffect(() => {
     if (!editing) return;
@@ -160,11 +145,11 @@ export default function ProductForm({ productId }: { productId?: string }) {
         setStock(p.variants?.[0]?.stockOnHand ?? 0);
         setVariantId(p.variants?.[0]?.id ?? '');
         setAssetId(p.featuredAsset?.id ?? '');
-        if (p.collections?.[0]?.parent?.id) {
-          setCategoryId(p.collections[0].parent.id);
-          setSubcategoryId(p.collections[0].id);
-        } else if (p.collections?.[0]?.id) {
-          setCategoryId(p.collections[0].id);
+        if (p.collections?.[0]?.parent?.slug) {
+          setCategoryId(p.collections[0].parent.slug);
+          setSubcategoryId(p.collections[0].slug);
+        } else if (p.collections?.[0]?.slug) {
+          setCategoryId(p.collections[0].slug);
         }
       })
       .catch((err) => setError((err as Error).message));
@@ -190,15 +175,12 @@ export default function ProductForm({ productId }: { productId?: string }) {
     return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  async function resolveCollectionId(idOrFallback: string): Promise<string> {
-    if (!idOrFallback || (!idOrFallback.startsWith('fallback-') && !idOrFallback.startsWith('f-'))) return idOrFallback;
-    const fallbackCol = FALLBACK_COLLECTIONS.find(c => c.id === idOrFallback);
-    if (!fallbackCol) return idOrFallback;
-    
+  async function resolveCollectionId(slug: string): Promise<string> {
+    if (!slug) return slug;
     const query = `query GetRealCollection($slug: String!) { collection(slug: $slug) { id } }`;
-    const res = await adminClientFetch<{ collection: { id: string } }>(query, { slug: fallbackCol.slug });
+    const res = await adminClientFetch<{ collection: { id: string } }>(query, { slug });
     if (!res?.collection?.id) {
-      throw new Error(`Could not resolve real collection ID for slug: ${fallbackCol.slug}`);
+      throw new Error(`Could not resolve real collection ID for slug: ${slug}`);
     }
     return res.collection.id;
   }
@@ -207,6 +189,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     if (categoryId && !isJacketCollections && !subcategoryId) {
       setError('Please select a subcategory');
@@ -214,10 +197,28 @@ export default function ProductForm({ productId }: { productId?: string }) {
       return;
     }
     try {
-      const uploadedAssetId = await uploadImageIfNeeded();
+      // STEP 1 - Get default tax category
+      const taxRes = await adminClientFetch<{ taxCategories: { items: any[] } }>(`
+        query { taxCategories { items { id name isDefault } } }
+      `);
+      const defaultTaxCat = taxRes.taxCategories.items.find((t: any) => t.isDefault) || taxRes.taxCategories.items[0];
+      const taxCategoryId = defaultTaxCat?.id;
+      if (!taxCategoryId) throw new Error("No default tax category found in Vendure API.");
+
       const slug = slugify(name);
+      const uploadedAssetId = await uploadImageIfNeeded();
+
+      if (uploadedAssetId) {
+        // STEP 3 - Assign asset to channel
+        await adminClientFetch(`
+          mutation AssignAssets($assetIds: [ID!]!) {
+            assignAssetsToChannel(input: { assetIds: $assetIds, channelId: "1" }) { id }
+          }
+        `, { assetIds: [uploadedAssetId] });
+      }
 
       if (!editing) {
+        // STEP 2 - Create product
         const createRes = await adminClientFetch<{ createProduct: { id: string } }>(CREATE_PRODUCT, {
           input: {
             enabled: true,
@@ -226,37 +227,65 @@ export default function ProductForm({ productId }: { productId?: string }) {
             translations: [{ languageCode: 'en', name, slug, description }],
           },
         });
-
         const newProductId = createRes.createProduct.id;
+
+        // STEP 4 - Create variant
         const variantInputs = (sizes.length ? sizes : ['Default']).map((size) => ({
           productId: newProductId,
-          enabled: true,
+          taxCategoryId,
           sku: `${slug}-${size.toLowerCase()}`,
-          price: Math.round(price * 100),
+          price: 0,
           stockOnHand: stock,
+          trackInventory: false,
           featuredAssetId: uploadedAssetId,
           assetIds: uploadedAssetId ? [uploadedAssetId] : [],
           translations: [{ languageCode: 'en', name: `${name} ${size}` }],
         }));
-        const variantsRes = await adminClientFetch<{ createProductVariants: { id: string }[] }>(
+        
+        await adminClientFetch<{ createProductVariants: { id: string }[] }>(
           CREATE_VARIANTS,
           { input: variantInputs },
         );
-        const variantIds = variantsRes.createProductVariants.map((v) => v.id);
 
-        await new Promise((r) => setTimeout(r, 300));
-        await assignProductToDefaultChannel(newProductId, variantIds);
-        await new Promise((r) => setTimeout(r, 500));
+        // STEP 6.1 - Assign product to channel
+        await adminClientFetch(`
+          mutation AssignToChannel($productId: ID!) {
+            assignProductsToChannel(input: { productIds: [$productId], channelId: "1" }) { id }
+          }
+        `, { productId: newProductId });
+
+        // STEP 5 - Find collection ID
+        const targetSlug = subcategoryId || categoryId;
+        const colRes = await adminClientFetch<{ collection: { id: string, name: string } }>(`
+          query GetCollectionBySlug($slug: String!) { collection(slug: $slug) { id name } }
+        `, { slug: targetSlug });
         
-        const finalCategoryId = await resolveCollectionId(categoryId);
-        const finalSubcategoryId = subcategoryId ? await resolveCollectionId(subcategoryId) : '';
+        const realCollectionId = colRes.collection?.id;
+        if (!realCollectionId) throw new Error(`Could not find real collection ID for slug: ${targetSlug}`);
 
-        if (isJacketCollections) {
-          await assignProductToCollection(newProductId, finalCategoryId);
-        } else if (finalSubcategoryId) {
-          await assignProductToCollection(newProductId, finalSubcategoryId, finalCategoryId);
-        }
+        // STEP 6.2 - Assign product to collection via filter
+        const filterValue = `["${newProductId}"]`;
+        await adminClientFetch(`
+          mutation AssignToCollection($collectionId: ID!, $filterValue: String!) {
+            updateCollection(input: {
+              id: $collectionId
+              filters: [{
+                code: "manually-assigned-filter"
+                arguments: [{ name: "productIds", value: $filterValue }]
+              }]
+            }) { id }
+          }
+        `, { collectionId: realCollectionId, filterValue });
+
+        // STEP 7 - Show success message
+        setSuccess(`Product saved successfully! It will appear on the website in ${selectedCategory?.name} > ${colRes.collection?.name || ''} within a few seconds.`);
+        setTimeout(() => {
+          router.push('/admin/products');
+          router.refresh();
+        }, 2000);
+
       } else {
+        // Edit flow (condensed)
         await adminClientFetch(UPDATE_PRODUCT, {
           input: {
             id: productId,
@@ -269,8 +298,9 @@ export default function ProductForm({ productId }: { productId?: string }) {
           await adminClientFetch(UPDATE_VARIANT, {
             input: {
               id: variantId,
-              price: Math.round(price * 100),
+              price: 0,
               stockOnHand: stock,
+              trackInventory: false,
               featuredAssetId: uploadedAssetId,
               assetIds: uploadedAssetId ? [uploadedAssetId] : [],
               sku: `${slug}-${(sizes[0] ?? 'default').toLowerCase()}`,
@@ -278,19 +308,37 @@ export default function ProductForm({ productId }: { productId?: string }) {
           });
         }
         
-        const finalCategoryIdEdit = await resolveCollectionId(categoryId);
-        const finalSubcategoryIdEdit = subcategoryId ? await resolveCollectionId(subcategoryId) : '';
-
-        if (isJacketCollections) {
-          await assignProductToCollection(productId!, finalCategoryIdEdit);
-        } else if (finalSubcategoryIdEdit) {
-          await assignProductToCollection(productId!, finalSubcategoryIdEdit, finalCategoryIdEdit);
+        const targetSlug = subcategoryId || categoryId;
+        const colRes = await adminClientFetch<{ collection: { id: string, name: string } }>(`
+          query GetCollectionBySlug($slug: String!) { collection(slug: $slug) { id name } }
+        `, { slug: targetSlug });
+        
+        const realCollectionId = colRes.collection?.id;
+        if (realCollectionId) {
+          const filterValue = `["${productId}"]`;
+          await adminClientFetch(`
+            mutation AssignToCollection($collectionId: ID!, $filterValue: String!) {
+              updateCollection(input: {
+                id: $collectionId
+                filters: [{
+                  code: "manually-assigned-filter"
+                  arguments: [{ name: "productIds", value: $filterValue }]
+                }]
+              }) { id }
+            }
+          `, { collectionId: realCollectionId, filterValue });
         }
+
+        setSuccess(`Product updated successfully!`);
+        setTimeout(() => {
+          router.push('/admin/products');
+          router.refresh();
+        }, 2000);
       }
-      router.push('/admin/products');
-      router.refresh();
     } catch (err) {
-      setError((err as Error).message);
+      // STEP 8 - Exact error message in red box
+      console.error(err);
+      setError(err instanceof Error ? err.message : JSON.stringify(err));
     } finally {
       setLoading(false);
     }
@@ -301,12 +349,20 @@ export default function ProductForm({ productId }: { productId?: string }) {
       <h1 className="text-2xl font-semibold normal-case tracking-normal">
         {editing ? 'Edit Product' : 'Add New Product'}
       </h1>
-      {collectionsError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded">
-          <p className="font-semibold text-sm">Collections API Error:</p>
-          <p className="text-sm">{collectionsError}</p>
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded">
+          <p className="font-semibold mb-1">Error saving product:</p>
+          <pre className="text-sm whitespace-pre-wrap font-mono">{error}</pre>
         </div>
       )}
+      
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded">
+          <p className="font-semibold">{success}</p>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-4">
         <div className="space-y-1">
           <label className="text-sm font-medium">Product Name</label>
@@ -385,7 +441,6 @@ export default function ProductForm({ productId }: { productId?: string }) {
         </div>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <div className="flex gap-2">
         <button type="submit" disabled={loading} className="rounded bg-black text-white px-4 py-2 disabled:opacity-60">
           {loading ? 'Saving...' : 'Save Product'}

@@ -21,6 +21,26 @@ export async function POST(req: NextRequest) {
   console.log('Token value:', token ? `${token.substring(0, 10)}...` : 'NONE');
   console.log('Request body:', JSON.stringify(body));
 
+  if (body.query && body.query.includes('CreateProduct')) {
+    console.log('Intercepting CreateProduct to ensure tax zones...');
+    await fetch('https://red-hex-backend.onrender.com/admin-api', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        query: `
+          mutation EnsureTaxZone {
+            updateChannel(input: {
+              id: "1"
+              defaultTaxZoneId: "1"
+              defaultShippingZoneId: "1"
+            }) { id }
+          }
+        `
+      }),
+      cache: 'no-store',
+    });
+  }
+
   const upstream = await fetch('https://red-hex-backend.onrender.com/admin-api', {
     method: 'POST',
     headers,
