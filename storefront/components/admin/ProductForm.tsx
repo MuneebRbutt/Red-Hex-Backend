@@ -175,14 +175,45 @@ export default function ProductForm({ productId }: { productId?: string }) {
     return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  async function resolveCollectionId(slug: string): Promise<string> {
-    if (!slug) return slug;
-    const query = `query GetRealCollection($slug: String!) { collection(slug: $slug) { id } }`;
-    const res = await adminClientFetch<{ collection: { id: string } }>(query, { slug });
-    if (!res?.collection?.id) {
-      throw new Error(`Could not resolve real collection ID for slug: ${slug}`);
+  async function resolveCollectionWithFallback(primarySlug: string, fallbackSlug: string): Promise<string> {
+    const querySlug = `
+      query GetCollection($slug: String!) {
+        collection(slug: $slug) {
+          id
+          name
+          slug
+        }
+      }
+    `;
+    
+    let res = await adminClientFetch<{ collection: { id: string } }>(querySlug, { slug: primarySlug });
+    if (res?.collection?.id) return res.collection.id;
+
+    if (primarySlug !== fallbackSlug) {
+      res = await adminClientFetch<{ collection: { id: string } }>(querySlug, { slug: fallbackSlug });
+      if (res?.collection?.id) return res.collection.id;
     }
-    return res.collection.id;
+
+    const queryAll = `
+      query {
+        collections(options: { take: 100 }) {
+          items {
+            id
+            name
+            slug
+          }
+        }
+      }
+    `;
+    const allRes = await adminClientFetch<{ collections: { items: any[] } }>(queryAll);
+    const items = allRes?.collections?.items || [];
+    console.log('Available collections in database:', items);
+
+    const match = items.find((i: any) => i.slug === primarySlug || i.slug === fallbackSlug);
+    if (match?.id) return match.id;
+
+    const availableSlugs = items.map((i: any) => i.slug).join(', ');
+    throw new Error(`Collection not found for slug: ${primarySlug}. Available slugs: ${availableSlugs}`);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -247,12 +278,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
 
         // STEP 5 - Find collection ID
         const targetSlug = subcategoryId || categoryId;
-        const colRes = await adminClientFetch<{ collection: { id: string, name: string } }>(`
-          query GetCollectionBySlug($slug: String!) { collection(slug: $slug) { id name } }
-        `, { slug: targetSlug });
-        
-        const realCollectionId = colRes.collection?.id;
-        if (!realCollectionId) throw new Error(`Could not find real collection ID for slug: ${targetSlug}`);
+        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId);
 
         // STEP 6.2 - Assign product to collection via filter
         const filterValue = `["${newProductId}"]`;
@@ -269,7 +295,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
         `, { collectionId: realCollectionId, filterValue });
 
         // STEP 7 - Show success message
-        setSuccess(`Product saved successfully! It will appear on the website in ${selectedCategory?.name} > ${colRes.collection?.name || ''} within a few seconds.`);
+        setSuccess(`Product saved successfully! It will appear on the website within a few seconds.`);
         setTimeout(() => {
           router.push('/admin/products');
           router.refresh();
@@ -300,11 +326,8 @@ export default function ProductForm({ productId }: { productId?: string }) {
         }
         
         const targetSlug = subcategoryId || categoryId;
-        const colRes = await adminClientFetch<{ collection: { id: string, name: string } }>(`
-          query GetCollectionBySlug($slug: String!) { collection(slug: $slug) { id name } }
-        `, { slug: targetSlug });
+        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId);
         
-        const realCollectionId = colRes.collection?.id;
         if (realCollectionId) {
           const filterValue = `["${productId}"]`;
           await adminClientFetch(`
