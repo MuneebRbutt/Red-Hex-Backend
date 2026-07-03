@@ -45,14 +45,7 @@ const redHexCollections: CollectionDefinition[] = [
     {
         name: 'Jacket Collections',
         slug: 'jacket-collections',
-        children: [
-            { name: 'Bomber Jackets', slug: 'bomber-jackets' },
-            { name: 'Puffer Jackets', slug: 'puffer-jackets' },
-            { name: 'Leather Jackets', slug: 'leather-jackets' },
-            { name: 'Varsity Jacket', slug: 'varsity-jacket' },
-            { name: 'Denim Jacket', slug: 'denim-jacket' },
-            { name: 'Windbreaker Jacket', slug: 'windbreaker-jacket' },
-        ],
+        children: [],
     },
     {
         name: 'Gymwear & Activewear',

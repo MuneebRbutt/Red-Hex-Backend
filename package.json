@@ -19,6 +19,7 @@
     "seed:collections": "ts-node ./src/seed-collections.ts",
     "seed:channel-config": "ts-node ./src/seed-channel-config.ts",
     "seed:test-product": "ts-node ./src/seed-test-product.ts",
+    "seed:tax": "ts-node ./src/seed-tax-data.ts",
     "migrate": "node --require ts-node/register ./src/run-migrations.ts"
   },
   "dependencies": {
