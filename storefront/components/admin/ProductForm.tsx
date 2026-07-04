@@ -175,7 +175,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
     return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  async function resolveCollectionWithFallback(primarySlug: string, fallbackSlug: string): Promise<string> {
+  async function resolveCollectionWithFallback(primarySlug: string, fallbackSlug: string, collectionName: string): Promise<string> {
     const querySlug = `
       query GetCollection($slug: String!) {
         collection(slug: $slug) {
@@ -211,6 +211,30 @@ export default function ProductForm({ productId }: { productId?: string }) {
 
     const match = items.find((i: any) => i.slug === primarySlug || i.slug === fallbackSlug);
     if (match?.id) return match.id;
+
+    // Collection doesn't exist at all, so let's automatically create it!
+    console.log(`Auto-creating missing collection: ${collectionName} (${primarySlug})`);
+    try {
+      const createRes = await adminClientFetch<{ createCollection: { id: string } }>(`
+        mutation CreateCollection($input: CreateCollectionInput!) {
+          createCollection(input: $input) { id }
+        }
+      `, {
+        input: {
+          translations: [{ languageCode: 'en', name: collectionName, slug: primarySlug, description: '' }],
+          filters: [{
+            code: "manually-assigned-filter",
+            arguments: [{ name: "productIds", value: "[]" }]
+          }]
+        }
+      });
+
+      if (createRes?.createCollection?.id) {
+        return createRes.createCollection.id;
+      }
+    } catch (err) {
+      console.error('Failed to auto-create collection:', err);
+    }
 
     const availableSlugs = items.map((i: any) => i.slug).join(', ');
     throw new Error(`Collection not found for slug: ${primarySlug}. Available slugs: ${availableSlugs}`);
@@ -278,7 +302,8 @@ export default function ProductForm({ productId }: { productId?: string }) {
 
         // STEP 5 - Find collection ID
         const targetSlug = subcategoryId || categoryId;
-        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId);
+        const targetName = subcategoryId ? (subcategories.find(s => s.id === subcategoryId)?.name || targetSlug) : (selectedCategory?.name || targetSlug);
+        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId, targetName);
 
         // STEP 6.2 - Assign product to collection via filter
         const filterValue = `["${newProductId}"]`;
@@ -326,7 +351,8 @@ export default function ProductForm({ productId }: { productId?: string }) {
         }
         
         const targetSlug = subcategoryId || categoryId;
-        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId);
+        const targetName = subcategoryId ? (subcategories.find(s => s.id === subcategoryId)?.name || targetSlug) : (selectedCategory?.name || targetSlug);
+        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId, targetName);
         
         if (realCollectionId) {
           const filterValue = `["${productId}"]`;
