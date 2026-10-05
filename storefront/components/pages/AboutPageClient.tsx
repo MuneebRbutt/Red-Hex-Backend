@@ -24,7 +24,7 @@ const WHY_CHOOSE = [
   {
     title: 'Global Shipping',
     icon: '🌐',
-    text: 'Worldwide fulfillment with trusted logistics partners. Your garments, delivered wherever you operate.',
+    text: 'Worldwide fulfillment with trusted logistics partners. Your gloves, delivered wherever you operate.',
   },
 ];
 
@@ -123,9 +123,9 @@ export default function AboutPageClient() {
           }}
         >
           About{' '}
-          <span style={{ color: '#cc0000' }}>RED HEX</span>
+          <span style={{ color: '#cc0000' }}>TANAURA</span>
           <br />
-          Industries
+          Leather &amp; Safety Gloves
         </h1>
         <p
           style={{
@@ -138,7 +138,7 @@ export default function AboutPageClient() {
             lineHeight: 1.75,
           }}
         >
-          Premium custom garments for brands, teams, and entrepreneurs — engineered in Lahore, shipped worldwide.
+          Premium custom gloves for brands, teams, and entrepreneurs — engineered in Lahore, shipped worldwide.
         </p>
       </section>
 
@@ -173,7 +173,7 @@ export default function AboutPageClient() {
           >
             <img
               src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=900&q=80"
-              alt="RED HEX INDUSTRIES manufacturing facility"
+              alt="TANAURA manufacturing facility"
               style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '420px' }}
             />
             <div
@@ -217,7 +217,7 @@ export default function AboutPageClient() {
               Crafting Performance Wear Since 2018
             </h2>
             <p style={bodyText}>
-              RED HEX INDUSTRIES was founded on a single conviction: that premium quality garments should be
+              TANAURA was founded on a single conviction: that premium quality gloves should be
               accessible to every brand, team, and individual — without compromise.
             </p>
             <p style={bodyText}>
@@ -226,7 +226,7 @@ export default function AboutPageClient() {
               10,000-unit wholesale run, we deliver the same unrelenting standard.
             </p>
             <p style={{ ...bodyText, marginBottom: 0 }}>
-              From sportswear and gymwear to safety workwear and jacket collections — every piece we produce reflects
+              From welding and mechanic gloves to golf and fashion driver gloves — every piece we produce reflects
               our commitment to precision, durability, and design.
             </p>
           </div>

@@ -18,58 +18,42 @@ interface CollectionDefinition {
     }>;
 }
 
-const redHexCollections: CollectionDefinition[] = [
+const tanauraCollections: CollectionDefinition[] = [
     {
-        name: 'Sportswear',
-        slug: 'sportswear',
-        children: [
-            { name: 'Soccer Uniform', slug: 'soccer-uniform' },
-            { name: 'Baseball Uniform', slug: 'baseball-uniform' },
-            { name: 'American Football Uniform', slug: 'american-football-uniform' },
-            { name: 'Basketball Uniform', slug: 'basketball-uniform' },
-            { name: 'Ice Hockey Uniform', slug: 'ice-hockey-uniform' },
-            { name: 'Tennis Uniform', slug: 'tennis-uniform' },
-        ],
+        "name": "Welding gloves",
+        "slug": "welding-gloves",
+        "children": []
     },
     {
-        name: 'Casual Wear',
-        slug: 'casual-wear',
-        children: [
-            { name: 'Tracksuits', slug: 'tracksuits' },
-            { name: 'Hoodies', slug: 'hoodies' },
-            { name: 'Sweatshirt', slug: 'sweatshirt' },
-            { name: 'Sweat Pants', slug: 'sweat-pants' },
-            { name: 'T-Shirts', slug: 't-shirts' },
-        ],
+        "name": "Golf gloves",
+        "slug": "golf-gloves",
+        "children": []
     },
     {
-        name: 'Jacket Collections',
-        slug: 'jacket-collections',
-        children: [],
+        "name": "Mechanic gloves",
+        "slug": "mechanic-gloves",
+        "children": []
     },
     {
-        name: 'Gymwear & Activewear',
-        slug: 'gymwear-activewear',
-        children: [
-            { name: 'Tank Top', slug: 'tank-top' },
-            { name: 'Compression Shirts', slug: 'compression-shirts' },
-            { name: 'Dry-Fit T-Shirts', slug: 'dry-fit-t-shirts' },
-            { name: 'Gym Shorts', slug: 'gym-shorts' },
-            { name: 'Track Jackets', slug: 'track-jackets' },
-            { name: 'Wrist Straps', slug: 'wrist-straps' },
-            { name: 'Headbands', slug: 'headbands' },
-            { name: 'Gym Socks', slug: 'gym-socks' },
-        ],
+        "name": "Driver gloves",
+        "slug": "driver-gloves",
+        "children": []
     },
     {
-        name: 'Safety & Work Wear',
-        slug: 'safety-work-wear',
-        children: [
-            { name: 'Safety Vests', slug: 'safety-vests' },
-            { name: 'Construction Suits', slug: 'construction-suits' },
-            { name: 'Safety Jackets', slug: 'safety-jackets' },
-        ],
+        "name": "Canadian rigger gloves",
+        "slug": "canadian-rigger-gloves",
+        "children": []
     },
+    {
+        "name": "Assembly gloves",
+        "slug": "assembly-gloves",
+        "children": []
+    },
+    {
+        "name": "Fashion driver gloves",
+        "slug": "fashion-driver-gloves",
+        "children": []
+    }
 ];
 
 async function createAdminContext(app: any) {
@@ -92,7 +76,7 @@ async function seedCollections() {
         const collectionService = app.get(CollectionService);
         const existingCollections = await getCollectionSlugMap(ctx, collectionService);
 
-        for (const parent of redHexCollections) {
+        for (const parent of tanauraCollections) {
             const parentCollection = await getOrCreateCollection(
                 ctx,
                 collectionService,
@@ -113,7 +97,7 @@ async function seedCollections() {
             }
         }
 
-        console.log('RED HEX INDUSTRIES collections seeded successfully.');
+        console.log('TANAURA collections seeded successfully.');
     } finally {
         await worker.app.close();
     }

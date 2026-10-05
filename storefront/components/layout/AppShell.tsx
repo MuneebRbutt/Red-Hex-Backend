@@ -2,6 +2,7 @@
 
 import Header from '@/components/layout/Header';
 import { usePathname } from 'next/navigation';
+import WhatsAppButton from '@/components/layout/WhatsAppButton';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <>
       <Header />
       {children}
+      <WhatsAppButton />
     </>
   );
 }

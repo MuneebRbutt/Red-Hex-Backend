@@ -2,48 +2,43 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { customer, message, items, subtotal } = body;
+    const { customer, message, items, subtotal } = await request.json();
+    if (!customer?.name || !customer?.email || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Add customer details and at least one product.' }, { status: 400 });
+    }
 
-    // Validate request
-    if (!customer?.name || !customer?.email || !items || !items.length) {
+    const endpoint = process.env.FORMSPREE_ENDPOINT;
+    if (!endpoint) {
       return NextResponse.json(
-        { error: 'Missing required customer details or cart items.' },
-        { status: 400 }
+        { error: 'Enquiry delivery is not configured yet. Please contact us on WhatsApp.' },
+        { status: 503 },
       );
     }
 
-    // Prepare console logs as a simulated email delivery
-    console.log('==================================================');
-    console.log('✉️ NEW CART ENQUIRY RECEIVED (RED HEX INDUSTRIES)');
-    console.log('==================================================');
-    console.log(`From: ${customer.name} <${customer.email}>`);
-    if (customer.phone) console.log(`Phone: ${customer.phone}`);
-    if (customer.company) console.log(`Company: ${customer.company}`);
-    console.log('--------------------------------------------------');
-    console.log('Items Ordered:');
-    items.forEach((item: any, idx: number) => {
-      console.log(
-        `${idx + 1}. ${item.name} | Size: ${item.size} | Qty: ${item.quantity} | Price: $${item.price.toFixed(2)} | Subtotal: $${(item.price * item.quantity).toFixed(2)}`
-      );
+    const productList = items
+      .map((item: { name: string; size: string; quantity: number }) => `${item.name} — size ${item.size}, quantity ${item.quantity}`)
+      .join('\n');
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.company,
+        products: productList,
+        subtotal,
+        message,
+        source: 'Tanaura website product enquiry',
+      }),
     });
-    console.log('--------------------------------------------------');
-    console.log(`Total Value: $${subtotal.toFixed(2)}`);
-    if (message) {
-      console.log('--------------------------------------------------');
-      console.log(`Customer Message:\n${message}`);
+
+    if (!response.ok) {
+      return NextResponse.json({ error: 'Unable to send your enquiry. Please try WhatsApp.' }, { status: 502 });
     }
-    console.log('==================================================');
 
-    // Here is where you would normally configure nodemailer or an email API like Resend / SendGrid:
-    // e.g., await sendEmail({ to: 'sales@redhexindustries.com', subject: 'New Enquiry', ... })
-
-    return NextResponse.json({ success: true, message: 'Enquiry received successfully.' });
-  } catch (error: any) {
-    console.error('Error processing cart enquiry:', error);
-    return NextResponse.json(
-      { error: error?.message || 'An error occurred while processing your enquiry.' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true, message: 'Your enquiry has been sent.' });
+  } catch {
+    return NextResponse.json({ error: 'Unable to send your enquiry. Please try WhatsApp.' }, { status: 500 });
   }
 }

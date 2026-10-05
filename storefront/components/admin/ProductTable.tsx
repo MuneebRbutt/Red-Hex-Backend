@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { adminClientFetch } from '@/lib/admin/client';
+import { isTanauraProduct } from '@/lib/categories';
 
 type ProductRow = {
   id: string;
   name: string;
   slug: string;
+  description?: string;
   featuredAsset?: { preview?: string } | null;
   variants: Array<{ id: string; price?: number | null; stockOnHand?: number | null }>;
-  collections?: Array<{ id: string; name: string }>;
+  collections?: Array<{ id: string; name: string; slug: string }>;
 };
 
 const PRODUCTS_QUERY = `
@@ -21,8 +23,9 @@ query AdminProductsList {
       id
       name
       slug
+      description
       featuredAsset { preview }
-      collections { id name }
+      collections { id name slug }
       variants { id price stockOnHand }
     }
   }
@@ -35,6 +38,15 @@ mutation DeleteProduct($id: ID!) {
 }
 `;
 
+const extractImageUrl = (description: string) => {
+  try {
+    const match = description.match(/\{"_imageUrl":"([^"]+)"\}/)
+    return match ? match[1] : null
+  } catch {
+    return null
+  }
+}
+
 export default function ProductTable() {
   const router = useRouter();
   const [items, setItems] = useState<ProductRow[]>([]);
@@ -45,7 +57,7 @@ export default function ProductTable() {
     try {
       setError('');
       const data = await adminClientFetch<{ products: { items: ProductRow[] } }>(PRODUCTS_QUERY);
-      setItems(data.products.items);
+      setItems(data.products.items.filter(isTanauraProduct));
     } catch (err) {
       const msg = (err as Error).message;
       if (msg === 'UNAUTHORIZED') router.push('/admin/login');
@@ -110,11 +122,15 @@ export default function ProductTable() {
           {rows.map((product) => (
             <tr key={product.id} className="border-t">
               <td className="p-3">
-                {product.featuredAsset?.preview ? (
-                  <img src={product.featuredAsset.preview} alt={product.name} className="h-10 w-10 rounded object-cover" />
-                ) : (
-                  <div className="h-10 w-10 rounded bg-gray-200" />
-                )}
+                {(() => {
+                  const cloudinaryUrl = extractImageUrl(product.description || '');
+                  const imgUrl = cloudinaryUrl || product.featuredAsset?.preview;
+                  return imgUrl ? (
+                    <img src={imgUrl} alt={product.name} className="h-10 w-10 rounded object-cover" />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-gray-200" />
+                  );
+                })()}
               </td>
               <td className="p-3">{product.name}</td>
               <td className="p-3">{product.category}</td>

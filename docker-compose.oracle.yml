@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tanaura
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tanaura"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    restart: unless-stopped
+    command: npm run start:server:prod
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &vendure_environment
+      APP_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/tanaura
+      DATABASE_SSL: "false"
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-false}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      SUPERADMIN_USERNAME: ${SUPERADMIN_USERNAME}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD}
+      PUBLIC_URL: https://${API_DOMAIN}
+      STOREFRONT_URL: ${STOREFRONT_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      ASSET_UPLOAD_DIR: /data/assets
+      ASSET_URL_PREFIX: https://${API_DOMAIN}/assets/
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    volumes:
+      - assets_data:/data/assets
+
+  worker:
+    build: .
+    restart: unless-stopped
+    command: npm run start:worker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: *vendure_environment
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  postgres_data:
+  assets_data:
+  caddy_data:
+  caddy_config:

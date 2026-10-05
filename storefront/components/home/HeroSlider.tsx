@@ -14,30 +14,9 @@ interface Slide {
 }
 
 const slides: Slide[] = [
-  {
-    id: 1,
-    image: 'https://placehold.co/1920x800/111111/ffffff?text=STREET+WEAR+COLLECTION',
-    headline: 'DEFINE YOUR STREET',
-    subheadline: 'Premium streetwear crafted for those who lead, not follow.',
-    cta: 'SHOP STREET WEAR',
-    ctaHref: '/street-wear',
-  },
-  {
-    id: 2,
-    image: 'https://placehold.co/1920x800/1a1a1a/c9a84c?text=SPORTS+PERFORMANCE+GEAR',
-    headline: 'BUILT FOR CHAMPIONS',
-    subheadline: 'High-performance sports uniforms engineered for elite athletes.',
-    cta: 'SHOP SPORTS WEAR',
-    ctaHref: '/sports-wear',
-  },
-  {
-    id: 3,
-    image: 'https://placehold.co/1920x800/0d0d0d/ffffff?text=LEATHER+GARMENTS',
-    headline: 'RAW. REFINED. REAL.',
-    subheadline: 'Handcrafted leather garments for the bold and unapologetic.',
-    cta: 'SHOP LEATHER',
-    ctaHref: '/leather-garment',
-  },
+  { id: 1, image: '', headline: 'TANAURA', subheadline: 'Leather & Safety Gloves. A new collection for work, sport, and everyday style.', cta: 'EXPLORE OUR GLOVES', ctaHref: '#categories' },
+  { id: 2, image: '', headline: 'MADE FOR THE TASK', subheadline: 'Discover welding, mechanic, rigger, and assembly glove categories.', cta: 'EXPLORE WORK GLOVES', ctaHref: '/collections/welding-gloves' },
+  { id: 3, image: '', headline: 'A REFINED TOUCH', subheadline: 'Explore golf, driver, and fashion driver gloves from Tanaura.', cta: 'EXPLORE DRIVER GLOVES', ctaHref: '/collections/driver-gloves' },
 ];
 
 const AUTOPLAY_INTERVAL = 5000;
@@ -103,13 +82,7 @@ export default function HeroSlider() {
           aria-hidden={idx !== current}
         >
           {/* Background Image */}
-          <img
-            src={slide.image}
-            alt={slide.headline}
-            className="w-full h-full object-cover transition-transform duration-[6000ms] ease-out"
-            style={{ transform: idx === current ? 'scale(1)' : 'scale(1.04)' }}
-            loading={idx === 0 ? 'eager' : 'lazy'}
-          />
+          <div aria-hidden="true" className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 75% 25%, #665039 0%, #211b15 38%, #090909 75%)' }}><div style={{ position: 'absolute', inset: '10%', border: '1px solid rgba(201,168,76,0.18)', transform: 'rotate(-8deg)' }} /></div>
 
           {/* Dark Gradient Overlay */}
           <div
@@ -134,7 +107,7 @@ export default function HeroSlider() {
                 className="text-xs font-semibold uppercase tracking-widest mb-4"
                 style={{ color: '#c9a84c', letterSpacing: '0.35em' }}
               >
-                NEW COLLECTION 2024
+                THE TANAURA COLLECTION
               </p>
 
               <h1

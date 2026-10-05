@@ -51,7 +51,7 @@ export default function AboutSection() {
           {/* Portrait image */}
           <img
             src="https://placehold.co/800x1000/111111/333333?text=CEO+PORTRAIT"
-            alt="Zain Arif – CEO of RED HEX INDUSTRIES"
+            alt="Zain Arif – CEO of TANAURA"
             style={{
               position: 'absolute',
               inset: 0,
@@ -105,7 +105,7 @@ export default function AboutSection() {
                 opacity: 0.8,
               }}
             >
-              RED HEX INDUSTRIES
+              TANAURA
             </span>
           </div>
 
@@ -226,7 +226,7 @@ export default function AboutSection() {
 
           {/* ─ Body paragraphs ─ */}
           {[
-            'RED HEX INDUSTRIES was founded on a single conviction: that premium quality garments should be accessible to every brand, team, and individual — without compromise. From day one, we set out to master every stitch, every seam, and every fibre.',
+            'TANAURA was founded on a single conviction: that premium quality gloves should be accessible to every brand, team, and individual — without compromise. From day one, we set out to master every stitch, every seam, and every fibre.',
             'Our manufacturing facility in Lahore operates with ISO-standard quality control, end-to-end in-house production, and dedicated R&D for performance fabrics. Whether it\'s a 12-piece custom order or a 10,000-unit wholesale run, we deliver the same unrelenting standard.',
             'Every collection we produce is a statement — not just of craftsmanship, but of the belief that what you wear defines how you perform.',
           ].map((para, i) => (
@@ -285,7 +285,7 @@ export default function AboutSection() {
                 margin: 0,
               }}
             >
-              — ZAIN ARIF / Founder & CEO, RED HEX INDUSTRIES
+              — ZAIN ARIF / Founder & CEO, TANAURA
             </p>
           </div>
 

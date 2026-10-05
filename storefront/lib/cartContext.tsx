@@ -122,7 +122,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Hydrate from localStorage once on mount
   useEffect(() => {
     try {
-      const stored = localStorage.getItem('rhx_cart');
+      const stored = localStorage.getItem('tanaura_cart_v1');
       if (stored) {
         const parsed = JSON.parse(stored) as CartItem[];
         if (Array.isArray(parsed)) {
@@ -141,7 +141,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       didMount.current = true;
       return;
     }
-    localStorage.setItem('rhx_cart', JSON.stringify(state.items));
+    localStorage.setItem('tanaura_cart_v1', JSON.stringify(state.items));
   }, [state.items]);
 
   // Lock body scroll when sidebar is open

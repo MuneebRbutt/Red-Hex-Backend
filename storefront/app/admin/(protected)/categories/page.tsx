@@ -1,5 +1,6 @@
 import { adminServerFetch } from '@/lib/admin/server';
 import { getMainCategories, getSubcategories } from '@/lib/admin/collections';
+import { CATEGORIES } from '@/lib/categories';
 
 type Collection = {
   id: string;
@@ -28,7 +29,8 @@ query AdminCollections {
 export default async function CategoriesPage() {
   const data = await adminServerFetch<CollectionsData>({ query: COLLECTIONS_QUERY });
   const items = data.collections.items.filter((c) => c.slug !== '__root_collection__');
-  const parents = getMainCategories(items);
+  const existing = getMainCategories(items);
+  const parents = CATEGORIES.map(category => existing.find(item => item.slug === category.slug) ?? { ...category, id: category.slug });
 
   return (
     <section className="space-y-4">

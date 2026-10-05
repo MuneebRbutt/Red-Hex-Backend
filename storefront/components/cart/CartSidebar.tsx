@@ -175,37 +175,7 @@ export default function CartSidebar() {
               gap: '0.85rem',
             }}
           >
-            {/* Subtotal */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Inter',sans-serif",
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.5)',
-                }}
-              >
-                Subtotal
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Oswald',sans-serif",
-                  fontSize: '1.35rem',
-                  fontWeight: 700,
-                  color: '#ffffff',
-                }}
-              >
-                ${subtotal.toFixed(2)}
-              </span>
-            </div>
+            {/* Removed Subtotal */}
 
             {/* Proceed to Enquiry */}
             <Link
@@ -288,7 +258,8 @@ function CartItemRow({
           style={{
             width: '72px',
             height: '90px',
-            objectFit: 'cover',
+            objectFit: 'contain',
+            objectPosition: 'center',
             backgroundColor: '#111',
           }}
         />
@@ -386,17 +357,7 @@ function CartItemRow({
             </button>
           </div>
 
-          {/* Price */}
-          <span
-            style={{
-              fontFamily: "'Oswald',sans-serif",
-              fontSize: '0.95rem',
-              fontWeight: 700,
-              color: '#ffffff',
-            }}
-          >
-            ${(item.price * item.quantity).toFixed(2)}
-          </span>
+          {/* Removed Price */}
         </div>
       </div>
 

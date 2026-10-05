@@ -1,112 +1,33 @@
 'use client';
 
+import { CATEGORIES } from '@/lib/categories';
 import React, { useState, useMemo } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { gql } from 'graphql-tag';
 import Link from 'next/link';
 import Footer from '@/components/layout/Footer';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GraphQL Queries
-// ─────────────────────────────────────────────────────────────────────────────
-const GET_COLLECTION = gql`
-  query GetCollectionProducts($slug: String!) {
-    collection(slug: $slug) {
-      id
-      name
-      description
-      productVariants(options: { take: 100 }) {
-        totalItems
-        items {
-          id
-          name
-          priceWithTax
-          product {
-            id
-            name
-            slug
-            featuredAsset { preview }
-            assets { preview }
-          }
-        }
-      }
-    }
-  }
-`;
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Category configurations and subcategory mapping
 // ─────────────────────────────────────────────────────────────────────────────
-const CATEGORY_MAP: Record<string, { label: string; subs: string[] }> = {
-  'sportswear': {
-    label: 'SPORTSWEAR',
-    subs: ['soccer-uniform', 'baseball-uniform', 'american-football-uniform', 'basketball-uniform', 'ice-hockey-uniform', 'tennis-uniform'],
-  },
-  'casual-wear': {
-    label: 'CASUAL WEAR',
-    subs: ['tracksuits', 'hoodies', 'sweatshirt', 'sweat-pants', 't-shirts'],
-  },
-  'jacket-collections': {
-    label: 'JACKET COLLECTIONS',
-    subs: ['bomber-jackets', 'puffer-jackets', 'leather-jackets', 'varsity-jacket', 'denim-jacket', 'windbreaker-jacket'],
-  },
-  'gymwear-activewear': {
-    label: 'GYMWEAR & ACTIVEWEAR',
-    subs: ['tank-top', 'compression-shirts', 'dry-fit-t-shirts', 'gym-shorts', 'track-jackets', 'wrist-straps', 'headbands', 'gym-socks'],
-  },
-  'safety-work-wear': {
-    label: 'SAFETY & WORK WEAR',
-    subs: ['safety-vests', 'construction-suits', 'safety-jackets'],
-  },
-};
+const CATEGORY_MAP: Record<string, { label: string; subs: string[] }> = Object.fromEntries(CATEGORIES.map(c => [c.slug, { label: c.name, subs: [] }]));
 
-const SUBCAT_TO_PARENT: Record<string, { parentSlug: string; parentLabel: string; label: string }> = {
-  'soccer-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'Soccer Uniform' },
-  'baseball-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'Baseball Uniform' },
-  'american-football-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'American Football Uniform' },
-  'basketball-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'Basketball Uniform' },
-  'ice-hockey-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'Ice Hockey Uniform' },
-  'tennis-uniform': { parentSlug: 'sportswear', parentLabel: 'SPORTSWEAR', label: 'Tennis Uniform' },
-  
-  'tracksuits': { parentSlug: 'casual-wear', parentLabel: 'CASUAL WEAR', label: 'Tracksuits' },
-  'hoodies': { parentSlug: 'casual-wear', parentLabel: 'CASUAL WEAR', label: 'Hoodies' },
-  'sweatshirt': { parentSlug: 'casual-wear', parentLabel: 'CASUAL WEAR', label: 'Sweatshirt' },
-  'sweat-pants': { parentSlug: 'casual-wear', parentLabel: 'CASUAL WEAR', label: 'Sweat Pants' },
-  't-shirts': { parentSlug: 'casual-wear', parentLabel: 'CASUAL WEAR', label: 'T-Shirts' },
-  
-  'bomber-jackets': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Bomber Jackets' },
-  'puffer-jackets': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Puffer Jackets' },
-  'leather-jackets': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Leather Jackets' },
-  'varsity-jacket': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Varsity Jacket' },
-  'denim-jacket': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Denim Jacket' },
-  'windbreaker-jacket': { parentSlug: 'jacket-collections', parentLabel: 'JACKET COLLECTIONS', label: 'Windbreaker Jacket' },
-  
-  'tank-top': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Tank Top' },
-  'compression-shirts': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Compression Shirts' },
-  'dry-fit-t-shirts': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Dry-Fit T-Shirts' },
-  'gym-shorts': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Gym Shorts' },
-  'track-jackets': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Track Jackets' },
-  'wrist-straps': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Wrist Straps' },
-  'headbands': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Headbands' },
-  'gym-socks': { parentSlug: 'gymwear-activewear', parentLabel: 'GYMWEAR & ACTIVEWEAR', label: 'Gym Socks' },
-  
-  'safety-vests': { parentSlug: 'safety-work-wear', parentLabel: 'SAFETY & WORK WEAR', label: 'Safety Vests' },
-  'construction-suits': { parentSlug: 'safety-work-wear', parentLabel: 'SAFETY & WORK WEAR', label: 'Construction Suits' },
-  'safety-jackets': { parentSlug: 'safety-work-wear', parentLabel: 'SAFETY & WORK WEAR', label: 'Safety Jackets' },
-};
+const SUBCAT_TO_PARENT: Record<string, { parentSlug: string; parentLabel: string; label: string }> = {};
 
 function formatPrice(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-export default function CollectionClient({ slug }: { slug: string }) {
-  // Apollo fetch for collection
-  const { data, loading, error } = useQuery(GET_COLLECTION, {
-    variables: { slug },
-    fetchPolicy: 'network-only',
-  });
-
-  const [priceRange, setPriceRange] = useState<string>('all');
+export default function CollectionClient({ 
+  slug, 
+  initialVariants = [],
+  serverCollectionName = '',
+  serverCollectionDesc = ''
+}: { 
+  slug: string; 
+  initialVariants?: any[];
+  serverCollectionName?: string;
+  serverCollectionDesc?: string;
+}) {
+  // Removed priceRange state
   const [currentPage, setCurrentPage] = useState<number>(1);
   const itemsPerPage = 8;
 
@@ -118,25 +39,12 @@ export default function CollectionClient({ slug }: { slug: string }) {
   const parentLabel = isSubcategory ? subcatInfo.parentLabel : (CATEGORY_MAP[slug]?.label || slug.replace(/-/g, ' ').toUpperCase());
   const currentLabel = isSubcategory ? subcatInfo.label : parentLabel;
 
-  const collectionName = (data as any)?.collection?.name || currentLabel;
-  const collectionDesc = (data as any)?.collection?.description || `Premium quality gear and apparel from our ${currentLabel} collection.`;
+  const collectionName = serverCollectionName || currentLabel;
+  const collectionDesc = serverCollectionDesc || `Explore gloves from our ${currentLabel} collection.`;
 
-  const rawVariants = (data as any)?.collection?.productVariants?.items || [];
-  const variants = rawVariants;
+  const variants = initialVariants;
 
-  // Price filtering logic
-  const filteredVariants = useMemo(() => {
-    return variants.filter((item: any) => {
-      const priceVal = item.priceWithTax / 100;
-      if (priceRange === 'under-50') return priceVal < 50;
-      if (priceRange === '50-100') return priceVal >= 50 && priceVal <= 100;
-      if (priceRange === '100-200') return priceVal >= 100 && priceVal <= 200;
-      if (priceRange === 'over-200') return priceVal > 200;
-      return true;
-    });
-  }, [variants, priceRange]);
-
-  // Pagination logic
+  const filteredVariants = variants;
   const totalPages = Math.ceil(filteredVariants.length / itemsPerPage) || 1;
   const paginatedVariants = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
@@ -161,7 +69,7 @@ export default function CollectionClient({ slug }: { slug: string }) {
             fontFamily: "'Inter', sans-serif", fontSize: '0.65rem', fontWeight: 700,
             color: '#cc0000', letterSpacing: '0.35em', textTransform: 'uppercase',
           }}>
-            RED HEX INDUSTRIES / COLLECTION
+            TANAURA / COLLECTION
           </span>
           <h1 style={{
             fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(2.5rem, 5vw, 4rem)',
@@ -199,50 +107,17 @@ export default function CollectionClient({ slug }: { slug: string }) {
 
       {/* ── MAIN LAYOUT ── */}
       <section style={{ maxWidth: '1400px', margin: '0 auto', padding: '3rem clamp(1rem, 4vw, 3rem)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '3rem' }} className="collection-layout">
+        <div className="collection-layout">
           
-          {/* ─ SIDEBAR FILTERS ─ */}
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-            {/* Price Filter */}
-            <div>
-              <h4 style={filterHeadingStyle}>PRICE RANGE</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                {[
-                  { id: 'all', label: 'All Prices' },
-                  { id: 'under-50', label: 'Under $50' },
-                  { id: '50-100', label: '$50 - $100' },
-                  { id: '100-200', label: '$100 - $200' },
-                  { id: 'over-200', label: 'Over $200' },
-                ].map(opt => (
-                  <label key={opt.id} style={radioLabelStyle}>
-                    <input
-                      type="radio"
-                      name="price-filter"
-                      checked={priceRange === opt.id}
-                      onChange={() => { setPriceRange(opt.id); setCurrentPage(1); }}
-                      style={radioInputStyle}
-                    />
-                    <span>{opt.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </aside>
-
           {/* ─ PRODUCT GRID ─ */}
-          <div>
-            {loading ? (
-              <div style={statusMessageStyle}>
-                <div style={inlineSpinnerStyle} />
-                <p style={{ marginTop: '1rem', color: 'rgba(255,255,255,0.4)' }}>Loading collection...</p>
-              </div>
-            ) : paginatedVariants.length === 0 ? (
+          <div style={{ width: '100%' }}>
+            {paginatedVariants.length === 0 ? (
               /* Coming Soon styled message */
               <div style={comingSoonStyle}>
                 <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📢</span>
                 <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: '1.8rem', color: '#ffffff', letterSpacing: '0.05em', margin: '0 0 0.5rem' }}>COMING SOON</h3>
                 <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.88rem', color: 'rgba(255,255,255,0.45)', margin: 0, maxWidth: '420px', lineHeight: 1.6 }}>
-                  Our designers are stitching the finishing details on the {currentLabel} line. Sign up for the newsletter below to get first access when it drops.
+                  Our {currentLabel} collection is coming soon. Product details and images will be added shortly.
                 </p>
               </div>
             ) : (
@@ -266,12 +141,12 @@ export default function CollectionClient({ slug }: { slug: string }) {
                         style={cardStyle}
                         className="product-card-hover"
                       >
-                        <Link href={`/products/${item.product.slug}`} style={{ display: 'block', overflow: 'hidden', aspectRatio: '3/4', position: 'relative' }}>
+                        <Link href={`/products/${item.product.slug}`} className="block relative w-full overflow-hidden bg-white h-[280px] md:h-[320px]">
                           <img
                             src={img1}
                             alt={item.name}
                             style={{
-                              width: '100%', height: '100%', objectFit: 'cover',
+                              width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center',
                               transition: 'transform 0.4s ease',
                             }}
                             className="product-card-img primary-img"
@@ -281,7 +156,7 @@ export default function CollectionClient({ slug }: { slug: string }) {
                               src={img2}
                               alt={`${item.name} alternate view`}
                               style={{
-                                position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+                                position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center',
                                 opacity: 0, transition: 'opacity 0.4s ease',
                               }}
                               className="secondary-img"
@@ -296,8 +171,7 @@ export default function CollectionClient({ slug }: { slug: string }) {
                           <Link href={`/products/${item.product.slug}`} style={{ textDecoration: 'none' }}>
                             <h3 style={cardTitleStyle}>{item.name}</h3>
                           </Link>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '0.6rem' }}>
-                            <span style={cardPriceStyle}>{formatPrice(item.priceWithTax)}</span>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 'auto', paddingTop: '0.6rem' }}>
                             <Link href={`/products/${item.product.slug}`} style={viewProductBtnStyle}>
                               VIEW PRODUCT
                             </Link>

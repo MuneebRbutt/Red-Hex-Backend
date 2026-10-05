@@ -1,9 +1,9 @@
 import AboutPageClient from '@/components/pages/AboutPageClient';
 
 export const metadata = {
-  title: 'About | RED HEX INDUSTRIES',
+  title: 'About | TANAURA',
   description:
-    'Learn about RED HEX INDUSTRIES — premium custom garment manufacturing in Lahore, Pakistan since 2018.',
+    'Learn about TANAURA — premium custom glove manufacturing in Lahore, Pakistan since 2018.',
 };
 
 export default function AboutPage() {

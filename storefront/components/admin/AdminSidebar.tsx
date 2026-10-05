@@ -21,7 +21,7 @@ export default function AdminSidebar() {
 
   return (
     <aside className="w-64 shrink-0 border-r bg-white p-4">
-      <h2 className="text-lg font-semibold normal-case tracking-normal mb-4">RED HEX Admin</h2>
+      <h2 className="text-lg font-semibold normal-case tracking-normal mb-4">TANAURA Admin</h2>
       <nav className="space-y-2">
         {links.map((link) => {
           const active = pathname === link.href;

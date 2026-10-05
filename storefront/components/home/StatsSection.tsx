@@ -158,9 +158,9 @@ export default function StatsSection({ statsOnly = false }: { statsOnly?: boolea
             WebkitTextStroke: '1px #cc0000',
             textShadow: '0 0 40px rgba(204,0,0,0.35)',
           }}>
-            RED HEX
+            TANAURA
           </span>
-          {' '}INDUSTRIES{' '}
+          {' '}GLOVES{' '}
           <span style={{ color: '#cc0000' }}>FAMILY</span>
         </h2>
 
@@ -173,8 +173,8 @@ export default function StatsSection({ statsOnly = false }: { statsOnly?: boolea
           maxWidth: '560px',
           margin: '0 auto 2.25rem',
         }}>
-          Join thousands of brands, teams, and entrepreneurs who trust RED HEX INDUSTRIES
-          for premium custom garments — crafted to order, shipped worldwide.
+          Join thousands of brands, teams, and entrepreneurs who trust TANAURA
+          for premium custom gloves — crafted to order, shipped worldwide.
         </p>
 
         {/* ORDER NOW button */}

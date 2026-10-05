@@ -1,5 +1,6 @@
 'use client';
 
+import { CATEGORIES as GLOVE_CATEGORIES } from '@/lib/categories';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { assignProductToCollection, assignProductToDefaultChannel } from '@/lib/admin/assignProductToCollection';
@@ -51,64 +52,7 @@ mutation UpdateProductVariant($input: UpdateProductVariantInput!) {
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
-const CATEGORIES = [
-  {
-    id: "sportswear",
-    name: "Sportswear",
-    slug: "sportswear",
-    subcategories: [
-      { id: "soccer-uniform", name: "Soccer Uniform", slug: "soccer-uniform" },
-      { id: "baseball-uniform", name: "Baseball Uniform", slug: "baseball-uniform" },
-      { id: "american-football-uniform", name: "American Football Uniform", slug: "american-football-uniform" },
-      { id: "basketball-uniform", name: "Basketball Uniform", slug: "basketball-uniform" },
-      { id: "ice-hockey-uniform", name: "Ice Hockey Uniform", slug: "ice-hockey-uniform" },
-      { id: "tennis-uniform", name: "Tennis Uniform", slug: "tennis-uniform" }
-    ]
-  },
-  {
-    id: "casual-wear",
-    name: "Casual Wear",
-    slug: "casual-wear",
-    subcategories: [
-      { id: "tracksuits", name: "Tracksuits", slug: "tracksuits" },
-      { id: "hoodies", name: "Hoodies", slug: "hoodies" },
-      { id: "sweatshirt", name: "Sweatshirt", slug: "sweatshirt" },
-      { id: "sweat-pants", name: "Sweat Pants", slug: "sweat-pants" },
-      { id: "t-shirts", name: "T-Shirts", slug: "t-shirts" }
-    ]
-  },
-  {
-    id: "jacket-collections",
-    name: "Jacket Collections",
-    slug: "jacket-collections",
-    subcategories: []
-  },
-  {
-    id: "gymwear-activewear",
-    name: "Gymwear & Activewear",
-    slug: "gymwear-activewear",
-    subcategories: [
-      { id: "tank-top", name: "Tank Top", slug: "tank-top" },
-      { id: "compression-shirts", name: "Compression Shirts", slug: "compression-shirts" },
-      { id: "dry-fit-t-shirts", name: "Dry-Fit T-Shirts", slug: "dry-fit-t-shirts" },
-      { id: "gym-shorts", name: "Gym Shorts", slug: "gym-shorts" },
-      { id: "track-jackets", name: "Track Jackets", slug: "track-jackets" },
-      { id: "wrist-straps", name: "Wrist Straps", slug: "wrist-straps" },
-      { id: "headbands", name: "Headbands", slug: "headbands" },
-      { id: "gym-socks", name: "Gym Socks", slug: "gym-socks" }
-    ]
-  },
-  {
-    id: "safety-work-wear",
-    name: "Safety & Work Wear",
-    slug: "safety-work-wear",
-    subcategories: [
-      { id: "safety-vests", name: "Safety Vests", slug: "safety-vests" },
-      { id: "construction-suits", name: "Construction Suits", slug: "construction-suits" },
-      { id: "safety-jackets", name: "Safety Jackets", slug: "safety-jackets" }
-    ]
-  }
-];
+const CATEGORIES = GLOVE_CATEGORIES.map(c => ({ ...c, id: c.slug, subcategories: [] as { id: string; name: string; slug: string }[] }));
 
 export default function ProductForm({ productId }: { productId?: string }) {
   const router = useRouter();
@@ -126,13 +70,14 @@ export default function ProductForm({ productId }: { productId?: string }) {
   const [subcategoryId, setSubcategoryId] = useState('');
   const [sizes, setSizes] = useState<string[]>(['M']);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string>('');
   const [variantId, setVariantId] = useState<string>('');
   const [assetId, setAssetId] = useState<string>('');
 
   const mainCategories = categories;
   const selectedCategory = categories.find(c => c.id === categoryId);
   const subcategories = selectedCategory?.subcategories || [];
-  const isJacketCollections = selectedCategory?.id === 'jacket-collections';
+  const hasSubcategories = subcategories.length > 0;
 
   useEffect(() => {
     if (!editing) return;
@@ -140,7 +85,13 @@ export default function ProductForm({ productId }: { productId?: string }) {
       .then((data) => {
         const p = data.product;
         setName(p.name ?? '');
-        setDescription(p.description ?? '');
+        
+        const match = p.description?.match(/\{"_imageUrl":"([^"]+)"\}/);
+        if (match) {
+          setExistingImageUrl(match[1]);
+        }
+        
+        setDescription((p.description ?? '').replace(/\{"_imageUrl":"[^"]+"\}/g, '').trim());
         setPrice((p.variants?.[0]?.price ?? 0) / 100);
         setStock(p.variants?.[0]?.stockOnHand ?? 0);
         setVariantId(p.variants?.[0]?.id ?? '');
@@ -161,83 +112,164 @@ export default function ProductForm({ productId }: { productId?: string }) {
     if (!selectedStillValid) setSubcategoryId('');
   }, [subcategoryId, subcategories]);
 
-  async function uploadImageIfNeeded(): Promise<string | undefined> {
-    if (!imageFile) return assetId || undefined;
-    const fd = new FormData();
-    fd.append('file', imageFile);
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.message ?? 'Upload failed');
-    return json.id as string;
-  }
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+    formData.append('folder', 'tanaura');
+    
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      { method: 'POST', body: formData }
+    );
+    
+    const data = await res.json();
+    
+    if (data.secure_url) {
+      return data.secure_url;
+    } else {
+      throw new Error('Cloudinary upload failed: ' + JSON.stringify(data));
+    }
+  };
 
   function slugify(value: string): string {
     return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
-  async function resolveCollectionWithFallback(primarySlug: string, fallbackSlug: string, collectionName: string): Promise<string> {
-    const querySlug = `
-      query GetCollection($slug: String!) {
-        collection(slug: $slug) {
-          id
-          name
-          slug
-        }
-      }
-    `;
-    
-    let res = await adminClientFetch<{ collection: { id: string } }>(querySlug, { slug: primarySlug });
-    if (res?.collection?.id) return res.collection.id;
+  async function assignToCollectionAndChannel(productId: string, targetSlug: string, categoryName: string) {
+    const cookies = document.cookie.split('; ');
+    const tokenCookie = cookies.find(c => c.startsWith('rh_admin_token='));
+    const token = tokenCookie ? tokenCookie.split('=')[1] : '';
 
-    if (primarySlug !== fallbackSlug) {
-      res = await adminClientFetch<{ collection: { id: string } }>(querySlug, { slug: fallbackSlug });
-      if (res?.collection?.id) return res.collection.id;
-    }
-
-    const queryAll = `
-      query {
-        collections(options: { take: 100 }) {
-          items {
-            id
-            name
-            slug
+    // STEP 2 - Fetch all collections directly from backend
+    const collectionsRes = await fetch('/api/admin/graphql', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        query: `{
+          collections(options: { take: 100 }) {
+            items { id name slug }
           }
-        }
+        }`
+      })
+    })
+    const collectionsData = await collectionsRes.json()
+    const collections = collectionsData?.data?.collections?.items || []
+    console.log('Collections via proxy:', collections.length, collections.map((c: any) => c.slug))
+
+    // STEP 3 - Find collection ID
+    const found = collections.find((c: any) => c.slug === targetSlug);
+    const collectionId = found?.id;
+    console.log('Found collection:', found, 'for slug:', targetSlug);
+
+    let assignedToCollection = false;
+
+    // STEP 4 - Assign product to collection using correct mutation
+    if (collectionId) {
+      console.log('Assigning product:', productId, 'to collection:', collectionId);
+      
+      // Query available filters for debugging
+      try {
+        const filtersRes = await fetch('https://red-hex-backend.onrender.com/admin-api', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'vendure-auth-token': token
+          },
+          body: JSON.stringify({
+            query: `{
+              collectionFilters {
+                code
+                args { name }
+              }
+            }`
+          })
+        });
+        const filtersData = await filtersRes.json();
+        console.log('Available collection filters:', JSON.stringify(filtersData, null, 2));
+      } catch (e) {
+        console.log('Failed to fetch collection filters:', e);
       }
-    `;
-    const allRes = await adminClientFetch<{ collections: { items: any[] } }>(queryAll);
-    const items = allRes?.collections?.items || [];
-    console.log('Available collections in database:', items);
 
-    const match = items.find((i: any) => i.slug === primarySlug || i.slug === fallbackSlug);
-    if (match?.id) return match.id;
-
-    // Collection doesn't exist at all, so let's automatically create it!
-    console.log(`Auto-creating missing collection: ${collectionName} (${primarySlug})`);
-    try {
-      const createRes = await adminClientFetch<{ createCollection: { id: string } }>(`
-        mutation CreateCollection($input: CreateCollectionInput!) {
-          createCollection(input: $input) { id }
+      try {
+        const assignRes = await fetch('/api/admin/graphql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            query: `
+              mutation {
+                updateCollection(input: {
+                  id: "${collectionId}"
+                  filters: [{
+                    code: "manually-assigned-filter"
+                    arguments: [{
+                      name: "productIds"
+                      value: "[\\\"${productId}\\\"]"
+                    }]
+                  }]
+                }) {
+                  id
+                  name
+                  productVariants { totalItems }
+                }
+              }
+            `
+          })
+        })
+        const assignData = await assignRes.json()
+        console.log('Assignment result:', JSON.stringify(assignData))
+        
+        if (!assignData?.errors) {
+          assignedToCollection = true;
+        } else {
+          console.error('Collection assignment mutation errors:', assignData.errors);
+          throw new Error(`Collection assignment failed: ${assignData.errors[0]?.message || JSON.stringify(assignData.errors)}`);
         }
-      `, {
-        input: {
-          translations: [{ languageCode: 'en', name: collectionName, slug: primarySlug, description: '' }],
-          filters: [{
-            code: "manually-assigned-filter",
-            arguments: [{ name: "productIds", value: "[]" }]
-          }]
-        }
-      });
-
-      if (createRes?.createCollection?.id) {
-        return createRes.createCollection.id;
+      } catch (err) {
+        console.error('Failed to assign to collection:', err);
+        throw err; // Re-throw to bubble up to UI
       }
-    } catch (err) {
-      console.error('Failed to auto-create collection:', err);
     }
 
-    const availableSlugs = items.map((i: any) => i.slug).join(', ');
-    throw new Error(`Collection not found for slug: ${primarySlug}. Available slugs: ${availableSlugs}`);
+    // STEP 5 - Also assign product to channel
+    try {
+      await fetch('https://red-hex-backend.onrender.com/admin-api', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'vendure-auth-token': token
+        },
+        credentials: 'include',  
+        body: JSON.stringify({
+          query: `
+            mutation {
+              assignProductsToChannel(input: {
+                productIds: ["${productId}"]
+                channelId: "1"
+              }) { id }
+            }
+          `
+        })
+      });
+    } catch (err) {
+      console.error('Failed to assign to channel:', err);
+    }
+
+    // STEP 6 - Update success message
+    if (assignedToCollection) {
+      setSuccess(`Product saved successfully and assigned to ${categoryName}!`);
+    } else {
+      setSuccess(`Product saved but category assignment failed. Check browser console for details.`);
+    }
+
+    setTimeout(() => {
+      router.push('/admin/products');
+      router.refresh();
+    }, 2000);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -246,32 +278,28 @@ export default function ProductForm({ productId }: { productId?: string }) {
     setError('');
     setSuccess('');
 
-    if (categoryId && !isJacketCollections && !subcategoryId) {
+    if (categoryId && hasSubcategories && !subcategoryId) {
       setError('Please select a subcategory');
       setLoading(false);
       return;
     }
     try {
       const slug = slugify(name);
-      const uploadedAssetId = await uploadImageIfNeeded();
-
-      if (uploadedAssetId) {
-        // STEP 3 - Assign asset to channel
-        await adminClientFetch(`
-          mutation AssignAssets($assetIds: [ID!]!) {
-            assignAssetsToChannel(input: { assetIds: $assetIds, channelId: "1" }) { id }
-          }
-        `, { assetIds: [uploadedAssetId] });
+      let imageUrl = existingImageUrl;
+      if (imageFile) {
+        imageUrl = await uploadToCloudinary(imageFile);
       }
+
+      const descriptionWithImage = imageUrl 
+        ? `${description}\n\n{"_imageUrl":"${imageUrl}"}`
+        : description;
 
       if (!editing) {
         // STEP 2 - Create product
         const createRes = await adminClientFetch<{ createProduct: { id: string } }>(CREATE_PRODUCT, {
           input: {
             enabled: true,
-            featuredAssetId: uploadedAssetId,
-            assetIds: uploadedAssetId ? [uploadedAssetId] : [],
-            translations: [{ languageCode: 'en', name, slug, description }],
+            translations: [{ languageCode: 'en', name, slug, description: descriptionWithImage }],
           },
         });
         const newProductId = createRes.createProduct.id;
@@ -283,8 +311,6 @@ export default function ProductForm({ productId }: { productId?: string }) {
           price: 0,
           stockOnHand: stock,
           trackInventory: 'FALSE',
-          featuredAssetId: uploadedAssetId,
-          assetIds: uploadedAssetId ? [uploadedAssetId] : [],
           translations: [{ languageCode: 'en', name: `${name} ${size}` }],
         }));
         
@@ -293,47 +319,16 @@ export default function ProductForm({ productId }: { productId?: string }) {
           { input: variantInputs },
         );
 
-        // STEP 6.1 - Assign product to channel
-        await adminClientFetch(`
-          mutation AssignToChannel($productId: ID!) {
-            assignProductsToChannel(input: { productIds: [$productId], channelId: "1" }) { id }
-          }
-        `, { productId: newProductId });
-
-        // STEP 5 - Find collection ID
         const targetSlug = subcategoryId || categoryId;
         const targetName = subcategoryId ? (subcategories.find(s => s.id === subcategoryId)?.name || targetSlug) : (selectedCategory?.name || targetSlug);
-        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId, targetName);
-
-        // STEP 6.2 - Assign product to collection via filter
-        const filterValue = `["${newProductId}"]`;
-        await adminClientFetch(`
-          mutation AssignToCollection($collectionId: ID!, $filterValue: String!) {
-            updateCollection(input: {
-              id: $collectionId
-              filters: [{
-                code: "manually-assigned-filter"
-                arguments: [{ name: "productIds", value: $filterValue }]
-              }]
-            }) { id }
-          }
-        `, { collectionId: realCollectionId, filterValue });
-
-        // STEP 7 - Show success message
-        setSuccess(`Product saved successfully! It will appear on the website within a few seconds.`);
-        setTimeout(() => {
-          router.push('/admin/products');
-          router.refresh();
-        }, 2000);
+        await assignToCollectionAndChannel(newProductId, targetSlug, targetName);
 
       } else {
         // Edit flow (condensed)
         await adminClientFetch(UPDATE_PRODUCT, {
           input: {
             id: productId,
-            featuredAssetId: uploadedAssetId,
-            assetIds: uploadedAssetId ? [uploadedAssetId] : [],
-            translations: [{ languageCode: 'en', name, slug, description }],
+            translations: [{ languageCode: 'en', name, slug, description: descriptionWithImage }],
           },
         });
         if (variantId) {
@@ -343,8 +338,6 @@ export default function ProductForm({ productId }: { productId?: string }) {
               price: 0,
               stockOnHand: stock,
               trackInventory: 'FALSE',
-              featuredAssetId: uploadedAssetId,
-              assetIds: uploadedAssetId ? [uploadedAssetId] : [],
               sku: `${slug}-${(sizes[0] ?? 'default').toLowerCase()}`,
             },
           });
@@ -352,28 +345,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
         
         const targetSlug = subcategoryId || categoryId;
         const targetName = subcategoryId ? (subcategories.find(s => s.id === subcategoryId)?.name || targetSlug) : (selectedCategory?.name || targetSlug);
-        const realCollectionId = await resolveCollectionWithFallback(targetSlug, categoryId, targetName);
-        
-        if (realCollectionId) {
-          const filterValue = `["${productId}"]`;
-          await adminClientFetch(`
-            mutation AssignToCollection($collectionId: ID!, $filterValue: String!) {
-              updateCollection(input: {
-                id: $collectionId
-                filters: [{
-                  code: "manually-assigned-filter"
-                  arguments: [{ name: "productIds", value: $filterValue }]
-                }]
-              }) { id }
-            }
-          `, { collectionId: realCollectionId, filterValue });
-        }
-
-        setSuccess(`Product updated successfully!`);
-        setTimeout(() => {
-          router.push('/admin/products');
-          router.refresh();
-        }, 2000);
+        await assignToCollectionAndChannel(productId, targetSlug, targetName);
       }
     } catch (err) {
       // STEP 8 - Exact error message in red box
@@ -425,7 +397,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
             ))}
           </select>
         </div>
-        {!isJacketCollections ? (
+        {hasSubcategories ? (
           <div className="space-y-1">
             <label className="text-sm font-medium">Subcategory</label>
             <select
@@ -445,7 +417,7 @@ export default function ProductForm({ productId }: { productId?: string }) {
           <div className="space-y-1">
             <label className="text-sm font-medium">Subcategory</label>
             <div className="w-full rounded border px-3 py-2 bg-gray-50 text-sm text-gray-500">
-              No subcategory needed for Jacket Collections
+              Products will be added directly to the selected glove category
             </div>
           </div>
         )}

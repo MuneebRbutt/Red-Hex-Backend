@@ -1,482 +1,119 @@
-'use client';
-
-import { useState } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { gql } from 'graphql-tag';
+import React from 'react';
 import Link from 'next/link';
+import { ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { CATEGORIES } from '@/lib/categories';
 
-// ── GraphQL ───────────────────────────────────────────────────────────────────
-const GET_COLLECTIONS = gql`
-  query GetCollections {
-    collections {
-      items {
-        name
-        slug
-        featuredAsset {
-          preview
-        }
-      }
-    }
-  }
-`;
-
-// ── Category config ────────────────────────────────────────────────────────────
-const CATEGORIES = [
-  {
-    key: 'sportswear',
-    label: 'SPORTSWEAR',
-    sub: 'Soccer · Baseball · Football · Basketball · Hockey · Tennis',
-    href: '/collections/sportswear',
-    fallback: 'https://placehold.co/800x600/1a1a1a/ffffff?text=SPORTSWEAR',
-    accent: '#cc0000',
-  },
-  {
-    key: 'casual-wear',
-    label: 'CASUAL WEAR',
-    sub: 'Tracksuits · Hoodies · Sweatshirts · T-Shirts',
-    href: '/collections/casual-wear',
-    fallback: 'https://placehold.co/800x600/1a1a1a/ffffff?text=CASUAL+WEAR',
-    accent: '#ffffff',
-  },
-  {
-    key: 'jacket-collections',
-    label: 'JACKET COLLECTIONS',
-    sub: 'Bomber · Puffer · Leather · Varsity',
-    href: '/collections/jacket-collections',
-    fallback: 'https://placehold.co/800x600/1a1a1a/ffffff?text=JACKET+COLLECTIONS',
-    accent: '#c9a84c',
-  },
-  {
-    key: 'gymwear-activewear',
-    label: 'GYMWEAR & ACTIVEWEAR',
-    sub: 'Tank Tops · Dry-Fit · Gym Shorts · Track Jackets',
-    href: '/collections/gymwear-activewear',
-    fallback: 'https://placehold.co/800x600/1a1a1a/ffffff?text=GYMWEAR',
-    accent: '#cc0000',
-  },
-  {
-    key: 'safety-work-wear',
-    label: 'SAFETY & WORK WEAR',
-    sub: 'Safety Vests · Construction Suits · Windbreakers',
-    href: '/collections/safety-work-wear',
-    fallback: 'https://placehold.co/800x600/1a1a1a/ffffff?text=SAFETY+%26+WORK+WEAR',
-    accent: '#ffffff',
-  },
-];
-
-interface VendureCollection {
-  name: string;
-  slug: string;
-  featuredAsset?: { preview: string };
-}
-
-// ── Single Card ────────────────────────────────────────────────────────────────
-function CategoryCard({
-  label,
-  sub,
-  href,
-  imageUrl,
-  accent,
-  index,
-}: {
-  label: string;
-  sub: string;
-  href: string;
-  imageUrl: string;
-  accent: string;
-  index: number;
-}) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Link
-      href={href}
-      aria-label={`Browse ${label}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'relative',
-        display: 'block',
-        overflow: 'hidden',
-        textDecoration: 'none',
-        backgroundColor: '#111111',
-        // Fixed heights — reliable on all browsers
-        height: '420px',
-      }}
-    >
-      {/* Background image */}
-      <img
-        src={imageUrl}
-        alt={label}
-        loading={index < 2 ? 'eager' : 'lazy'}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          objectPosition: 'center',
-          transform: hovered ? 'scale(1.07)' : 'scale(1)',
-          filter: hovered ? 'brightness(0.95)' : 'brightness(0.65)',
-          transition: 'transform 0.6s cubic-bezier(0.4,0,0.2,1), filter 0.4s ease',
-        }}
-      />
-
-      {/* Gradient overlay — always visible */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: hovered
-            ? 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.15) 100%)'
-            : 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.25) 100%)',
-          transition: 'background 0.4s ease',
-        }}
-      />
-
-      {/* Gold corner brackets on hover */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 16,
-          left: 16,
-          width: hovered ? 32 : 0,
-          height: hovered ? 32 : 0,
-          borderTop: `2px solid ${accent}`,
-          borderLeft: `2px solid ${accent}`,
-          opacity: hovered ? 1 : 0,
-          transition: 'all 0.35s ease',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          width: hovered ? 32 : 0,
-          height: hovered ? 32 : 0,
-          borderBottom: `2px solid ${accent}`,
-          borderRight: `2px solid ${accent}`,
-          opacity: hovered ? 1 : 0,
-          transition: 'all 0.35s ease',
-        }}
-      />
-
-      {/* Text content */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-          textAlign: 'center',
-          padding: '2rem 1.5rem',
-          zIndex: 2,
-        }}
-      >
-        {/* Sub label */}
-        <p
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '0.65rem',
-            fontWeight: 600,
-            letterSpacing: '0.28em',
-            color: accent,
-            textTransform: 'uppercase',
-            marginBottom: '0.5rem',
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? 'translateY(0)' : 'translateY(8px)',
-            transition: 'opacity 0.35s ease, transform 0.35s ease',
-          }}
-        >
-          {sub}
-        </p>
-
-        {/* Main headline */}
-        <h3
-          style={{
-            fontFamily: "'Oswald', 'Bebas Neue', sans-serif",
-            fontSize: 'clamp(1.9rem, 3.2vw, 2.8rem)',
-            fontWeight: 700,
-            color: '#ffffff',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-            lineHeight: 1,
-            marginBottom: '1.1rem',
-            transform: hovered ? 'scale(1.06)' : 'scale(1)',
-            transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
-            textShadow: '0 2px 16px rgba(0,0,0,0.9)',
-          }}
-        >
-          {label}
-        </h3>
-
-        {/* CTA pill */}
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '0.7rem',
-            fontWeight: 700,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: '#000000',
-            backgroundColor: accent,
-            padding: '0.5rem 1.5rem',
-            clipPath: 'polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%)',
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s',
-          }}
-        >
-          SHOP NOW
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-// ── Skeleton card ─────────────────────────────────────────────────────────────
-function SkeletonCard() {
-  return (
-    <div
-      style={{
-        height: '420px',
-        backgroundColor: '#111',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(90deg, #111 0%, #1c1c1c 50%, #111 100%)',
-          backgroundSize: '200% 100%',
-          animation: 'shimmer 1.8s ease-in-out infinite',
-        }}
-      />
-      <style>{`
-        @keyframes shimmer {
-          0%   { background-position: -200% 0; }
-          100% { background-position:  200% 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// ── Main Component ─────────────────────────────────────────────────────────────
 export default function CategoryGrid() {
-  const { data, loading } = useQuery<{
-    collections: { items: VendureCollection[] };
-  }>(GET_COLLECTIONS);
-
-  const imageMap = new Map<string, string>();
-  if (data?.collections?.items) {
-    for (const col of data.collections.items) {
-      if (col.featuredAsset?.preview) {
-        imageMap.set(col.slug, col.featuredAsset.preview);
-      }
-    }
-  }
-
   return (
     <section
-      style={{ backgroundColor: '#000000', padding: '5rem 0 4rem' }}
+      id="categories"
       aria-labelledby="category-heading"
+      className="bg-[#050505] px-4 sm:px-6 lg:px-8 py-24 sm:py-32 relative overflow-hidden scroll-mt-24 border-t border-white/5"
     >
-      {/* ── Section header ── */}
-      <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 3.5rem', padding: '0 1.5rem' }}>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '0.68rem',
-            fontWeight: 600,
-            letterSpacing: '0.3em',
-            color: '#c9a84c',
-            textTransform: 'uppercase' as const,
-            marginBottom: '1rem',
-            padding: '0.35rem 1rem',
-            border: '1px solid rgba(201,168,76,0.3)',
-            background: 'rgba(201,168,76,0.05)',
-          }}
-        >
-          <span
-            style={{
-              display: 'inline-block',
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              backgroundColor: '#c9a84c',
-              animation: 'catPulse 2s infinite',
-            }}
-          />
-          Our Products
-        </div>
+      {/* Ambient background glows */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-brand-gold/5 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-brand-gold/5 blur-[160px] rounded-full pointer-events-none" />
 
-        <h2
-          id="category-heading"
-          style={{
-            fontFamily: "'Oswald', 'Bebas Neue', sans-serif",
-            fontSize: 'clamp(2.4rem, 6vw, 4.5rem)',
-            fontWeight: 700,
-            color: '#ffffff',
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.04em',
-            lineHeight: 1,
-            marginBottom: '1rem',
-          }}
-        >
-          WHAT WE MAKE
-        </h2>
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-16 sm:mb-20">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-brand-gold/30 bg-brand-gold/10 text-brand-gold text-xs font-semibold uppercase tracking-[0.25em] mb-5">
+            <ShieldCheck size={14} className="text-brand-gold" aria-hidden="true" />
+            <span>Export Lineup &amp; Manufacturing</span>
+          </div>
 
-        <p
-          style={{
-            fontFamily: "'Inter', sans-serif",
-            fontSize: '0.95rem',
-            color: 'rgba(255,255,255,0.5)',
-            lineHeight: 1.7,
-            maxWidth: '460px',
-            margin: '0 auto 1.5rem',
-          }}
-        >
-          Premium garments built to outlast trends — engineered for performance, style, and identity.
-        </p>
-
-        {/* Divider line */}
-        <div
-          style={{
-            width: '60px',
-            height: '2px',
-            background: 'linear-gradient(90deg, transparent, #c9a84c, transparent)',
-            margin: '0 auto',
-          }}
-        />
-      </div>
-
-      {/* ── 3+2 Grid ── */}
-      <div
-        style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2px',
-          backgroundColor: 'rgba(255,255,255,0.06)',
-        }}
-        className="category-grid-wrapper"
-      >
-        {/* Top row — 3 cards */}
-        <div
-          style={{ display: 'grid', gap: '2px' }}
-          className="category-row-top"
-        >
-          {loading
-            ? [0, 1, 2].map((i) => <SkeletonCard key={i} />)
-            : CATEGORIES.slice(0, 3).map((cat, idx) => (
-                <CategoryCard
-                  key={cat.key}
-                  label={cat.label}
-                  sub={cat.sub}
-                  href={cat.href}
-                  imageUrl={imageMap.get(cat.key) ?? cat.fallback}
-                  accent={cat.accent}
-                  index={idx}
-                />
-              ))}
-        </div>
-
-        {/* Bottom row — 2 cards */}
-        <div
-          style={{ display: 'grid', gap: '2px' }}
-          className="category-row-bottom"
-        >
-          {loading
-            ? [0, 1].map((i) => <SkeletonCard key={i} />)
-            : CATEGORIES.slice(3).map((cat, idx) => (
-                <CategoryCard
-                  key={cat.key}
-                  label={cat.label}
-                  sub={cat.sub}
-                  href={cat.href}
-                  imageUrl={imageMap.get(cat.key) ?? cat.fallback}
-                  accent={cat.accent}
-                  index={idx + 3}
-                />
-              ))}
-        </div>
-      </div>
-
-      {/* ── Footer CTA ── */}
-      {!loading && (
-        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-          <Link
-            href="/collections"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '0.76rem',
-              fontWeight: 700,
-              letterSpacing: '0.2em',
-              textTransform: 'uppercase' as const,
-              color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.25)',
-              padding: '0.85rem 2.2rem',
-              textDecoration: 'none',
-              transition: 'border-color 0.3s ease, color 0.3s ease, background 0.3s ease',
-            }}
-            className="view-all-btn"
+          <h2
+            id="category-heading"
+            className="font-heading text-4xl sm:text-5xl lg:text-6xl text-white tracking-wide uppercase mb-5"
           >
-            VIEW ALL COLLECTIONS
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
+            Specialized Glove Collections
+          </h2>
+
+          <p className="text-zinc-400 text-sm sm:text-base md:text-lg font-light leading-relaxed">
+            Seven export-grade manufacturing categories engineered with premium leathers and high-tenacity technical fibers. Certified to international safety, abrasion, and ergonomic standards.
+          </p>
         </div>
-      )}
 
-      {/* Global styles for this section (not layout-critical) */}
-      <style>{`
-        @keyframes catPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
+        {/* Categories Showcase Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {CATEGORIES.map((category, index) => {
+            const itemNumber = (index + 1).toString().padStart(2, '0');
+            const hasImage = Boolean(category.image);
 
-        /* Desktop: top row = 3 cols, bottom row = 2 cols */
-        .category-row-top    { grid-template-columns: repeat(3, 1fr); }
-        .category-row-bottom { grid-template-columns: repeat(2, 1fr); }
+            return (
+              <Link
+                key={category.slug}
+                href={'/collections/' + category.slug}
+                className="group relative flex flex-col rounded-2xl overflow-hidden bg-gradient-to-b from-[#141416] via-[#0d0d0f] to-[#08080a] border border-brand-gold/20 hover:border-brand-gold/60 transition-all duration-500 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.7)] hover:shadow-[0_22px_45px_-5px_rgba(201,168,76,0.18)] hover:-translate-y-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+              >
+                {/* Visual Image Showcase */}
+                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-zinc-950">
+                  {hasImage ? (
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover object-center group-hover:scale-108 group-hover:brightness-105 transition-all duration-700 ease-out"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-900 text-zinc-600">
+                      <span>No image preview</span>
+                    </div>
+                  )}
 
-        /* Tablet: 2 cols each row */
-        @media (max-width: 1024px) {
-          .category-row-top    { grid-template-columns: repeat(2, 1fr); }
-          .category-row-bottom { grid-template-columns: repeat(2, 1fr); }
-        }
+                  {/* Gradient Vignette over image for contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0f] via-black/20 to-black/60 pointer-events-none" />
 
-        /* Mobile: single column */
-        @media (max-width: 640px) {
-          .category-row-top    { grid-template-columns: 1fr; }
-          .category-row-bottom { grid-template-columns: 1fr; }
-        }
+                  {/* Top Meta Badges */}
+                  <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-mono tracking-widest font-semibold bg-black/70 backdrop-blur-md border border-white/10 text-brand-gold shadow-md">
+                      {itemNumber} / TANAURA
+                    </span>
 
-        .view-all-btn:hover {
-          border-color: #cc0000 !important;
-          color: #cc0000 !important;
-          background: rgba(204,0,0,0.05) !important;
-        }
-      `}</style>
+                    {category.badge && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-sans font-medium tracking-wider bg-brand-gold/15 backdrop-blur-md border border-brand-gold/30 text-brand-gold shadow-md">
+                        {category.badge}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card Content Details */}
+                <div className="p-6 sm:p-7 flex flex-col flex-grow relative">
+                  {category.tagline && (
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold mb-2 block">
+                      {category.tagline}
+                    </span>
+                  )}
+
+                  <h3 className="font-heading text-2xl sm:text-3xl text-white tracking-wide uppercase group-hover:text-brand-gold transition-colors duration-300 mb-3">
+                    {category.name}
+                  </h3>
+
+                  <p className="text-zinc-400 text-sm leading-relaxed mb-6 font-light line-clamp-3">
+                    {category.description}
+                  </p>
+
+                  {/* Footer Action Bar */}
+                  <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between text-xs uppercase tracking-widest font-semibold text-brand-gold group-hover:text-white transition-colors duration-300">
+                    <span>Explore Collection</span>
+                    <div className="w-8 h-8 rounded-full bg-brand-gold/10 group-hover:bg-brand-gold group-hover:text-black text-brand-gold border border-brand-gold/30 flex items-center justify-center transition-all duration-300">
+                      <ArrowUpRight
+                        size={16}
+                        className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Subtle animated hover glow line at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }

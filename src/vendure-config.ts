@@ -91,7 +91,7 @@ export const config: VendureConfig = {
                       globalTemplateVars: {
                           fromAddress:
                               process.env.EMAIL_FROM ??
-                              '"RED HEX INDUSTRIES" <noreply@redhex.com>',
+                              '"Tanaura Leather & Safety Gloves" <noreply@redhex.com>',
                           verifyEmailAddressUrl: `${storefrontUrl}/verify`,
                           passwordResetUrl: `${storefrontUrl}/password-reset`,
                           changeEmailAddressUrl: `${storefrontUrl}/verify-email-address-change`,
@@ -116,7 +116,7 @@ export const config: VendureConfig = {
                       globalTemplateVars: {
                           fromAddress:
                               process.env.EMAIL_FROM ??
-                              '"RED HEX INDUSTRIES" <noreply@redhex.com>',
+                              '"Tanaura Leather & Safety Gloves" <noreply@redhex.com>',
                           verifyEmailAddressUrl: `${storefrontUrl}/verify`,
                           passwordResetUrl: `${storefrontUrl}/password-reset`,
                           changeEmailAddressUrl: `${storefrontUrl}/verify-email-address-change`,

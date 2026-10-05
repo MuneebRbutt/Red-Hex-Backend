@@ -9,7 +9,7 @@ const SHOP_API = process.env.NEXT_PUBLIC_VENDURE_SHOP_API ?? 'http://localhost:3
 
 async function testConnection() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('  RED HEX INDUSTRIES — Vendure Connection Test');
+  console.log('  TANAURA — Vendure Connection Test');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log(`  Endpoint: ${SHOP_API}`);
   console.log('');

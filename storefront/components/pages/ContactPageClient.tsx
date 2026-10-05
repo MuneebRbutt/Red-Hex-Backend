@@ -119,7 +119,7 @@ export default function ContactPageClient() {
             textTransform: 'uppercase',
           }}
         >
-          RED HEX INDUSTRIES
+          TANAURA
         </span>
         <h1
           style={{
@@ -265,9 +265,9 @@ export default function ContactPageClient() {
                 href: SITE.phoneHref,
               },
               {
-                title: 'Email',
-                body: SITE.email,
-                href: `mailto:${SITE.email}`,
+                title: 'WhatsApp',
+                body: SITE.phone,
+                href: SITE.whatsapp.href,
               },
               {
                 title: 'Address',

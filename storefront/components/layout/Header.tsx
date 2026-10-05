@@ -1,23 +1,14 @@
 'use client';
 
+import Brand from './Brand';
+import { CATEGORIES } from '@/lib/categories';
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client/react';
-import { gql } from 'graphql-tag';
-import { Search, Heart, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCart } from '@/lib/cartContext';
 import CartSidebar from '@/components/cart/CartSidebar';
 
-const GET_CART_QUANTITY = gql`
-  query GetCartQuantity {
-    activeOrder {
-      id
-      totalQuantity
-    }
-  }
-`;
-
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Navigation Data â€” RED HEX INDUSTRIES
+// Navigation Data â€” TANAURA
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface CategoryItem {
   name: string;
@@ -32,114 +23,12 @@ interface MegaMenuCategory {
   }[];
 }
 
-const MEGA_MENUS: Record<string, MegaMenuCategory> = {
-  'SPORTSWEAR': {
-    title: 'SPORTSWEAR',
-    columns: [
-      {
-        heading: 'Field Sports',
-        items: [
-          { name: 'Soccer Uniform',            href: '/collections/soccer-uniform' },
-          { name: 'Baseball Uniform',           href: '/collections/baseball-uniform' },
-          { name: 'American Football Uniform',  href: '/collections/american-football-uniform' },
-        ],
-      },
-      {
-        heading: 'Court & Arena',
-        items: [
-          { name: 'Basketball Uniform',         href: '/collections/basketball-uniform' },
-          { name: 'Ice Hockey Uniform',         href: '/collections/ice-hockey-uniform' },
-          { name: 'Tennis Uniform',             href: '/collections/tennis-uniform' },
-        ],
-      },
-    ],
-  },
-
-  'CASUAL WEAR': {
-    title: 'CASUAL WEAR',
-    columns: [
-      {
-        heading: 'Tops',
-        items: [
-          { name: 'Hoodies',     href: '/collections/hoodies' },
-          { name: 'Sweatshirt',  href: '/collections/sweatshirt' },
-          { name: 'T-Shirts',    href: '/collections/t-shirts' },
-        ],
-      },
-      {
-        heading: 'Bottoms & Sets',
-        items: [
-          { name: 'Tracksuits',  href: '/collections/tracksuits' },
-          { name: 'Sweat Pants', href: '/collections/sweat-pants' },
-        ],
-      },
-    ],
-  },
-
-  'JACKET COLLECTIONS': {
-    title: 'JACKET COLLECTIONS',
-    columns: [
-      {
-        heading: 'Jackets',
-        items: [
-          { name: 'Bomber Jackets',  href: '/collections/bomber-jackets' },
-          { name: 'Puffer Jackets',  href: '/collections/puffer-jackets' },
-          { name: 'Leather Jackets', href: '/collections/leather-jackets' },
-          { name: 'Varsity Jacket',  href: '/collections/varsity-jacket' },
-          { name: 'Denim Jacket',       href: '/collections/denim-jacket' },
-          { name: 'Windbreaker Jacket', href: '/collections/windbreaker-jacket' },
-        ],
-      },
-    ],
-  },
-
-  'GYMWEAR & ACTIVEWEAR': {
-    title: 'GYMWEAR & ACTIVEWEAR',
-    columns: [
-      {
-        heading: 'Tops & Shirts',
-        items: [
-          { name: 'Tank Top',            href: '/collections/tank-top' },
-          { name: 'Compression Shirts',  href: '/collections/compression-shirts' },
-          { name: 'Dry-Fit T-Shirts',    href: '/collections/dry-fit-t-shirts' },
-          { name: 'Track Jackets',       href: '/collections/track-jackets' },
-        ],
-      },
-      {
-        heading: 'Bottoms & Gear',
-        items: [
-          { name: 'Gym Shorts',    href: '/collections/gym-shorts' },
-          { name: 'Wrist Straps',  href: '/collections/wrist-straps' },
-          { name: 'Headbands',     href: '/collections/headbands' },
-          { name: 'Gym Socks',     href: '/collections/gym-socks' },
-        ],
-      },
-    ],
-  },
-
-  'SAFETY & WORK WEAR': {
-    title: 'SAFETY & WORK WEAR',
-    columns: [
-      {
-        heading: 'Protective Gear',
-        items: [
-          { name: 'Safety Vests',       href: '/collections/safety-vests' },
-          { name: 'Construction Suits', href: '/collections/construction-suits' },
-          { name: 'Safety Jackets',     href: '/collections/safety-jackets' },
-        ],
-      },
-    ],
-  },
-};
+const MEGA_MENUS: Record<string, MegaMenuCategory> = {};
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Component
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function Header() {
-  const { data } = useQuery(GET_CART_QUANTITY, {
-    fetchPolicy: 'cache-and-network',
-  });
-
   const { totalItems, openSidebar } = useCart();
 
   const [isSticky, setIsSticky]                               = useState(false);
@@ -160,13 +49,9 @@ export default function Header() {
   }, [isDrawerOpen]);
 
   const navLinks = [
-    { name: 'Home',                href: '/' },
-    { name: 'SPORTSWEAR',          href: '/collections/sportswear',         hasMega: true },
-    { name: 'CASUAL WEAR',         href: '/collections/casual-wear',        hasMega: true },
-    { name: 'JACKET COLLECTIONS',  href: '/collections/jacket-collections', hasMega: true },
-    { name: 'GYMWEAR & ACTIVEWEAR',href: '/collections/gymwear-activewear', hasMega: true },
-    { name: 'SAFETY & WORK WEAR',  href: '/collections/safety-work-wear',   hasMega: true },
-    { name: 'Contact Us',          href: '/contact' },
+    { name: 'Home', href: '/', hasMega: false },
+    ...CATEGORIES.map(category => ({ name: category.name, href: `/collections/${category.slug}`, hasMega: false })),
+    { name: 'Contact Us', href: '/contact', hasMega: false },
   ];
 
   const handleMobileCategoryClick = (categoryName: string) => {
@@ -208,7 +93,7 @@ export default function Header() {
           {/* Hamburger (Mobile) */}
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="md:hidden text-brand-white hover:text-brand-gold transition-colors duration-brand"
+            className="xl:hidden text-brand-white hover:text-brand-gold transition-colors duration-brand"
             aria-label="Open menu"
           >
             <Menu className="w-6 h-6" />
@@ -216,46 +101,12 @@ export default function Header() {
 
           {/* â”€â”€ Logo â”€â”€ */}
           <a href="/" className="flex items-center gap-2 leading-none select-none group">
-            {/* Hexagon icon mark */}
-            <svg
-              width="32" height="32" viewBox="0 0 32 32"
-              className="flex-shrink-0 transition-transform duration-300 group-hover:rotate-[30deg]"
-              aria-hidden="true"
-            >
-              <polygon
-                points="16,2 29,9 29,23 16,30 3,23 3,9"
-                fill="#cc0000"
-                stroke="#ff2222"
-                strokeWidth="1"
-              />
-              <polygon
-                points="16,7 25,12 25,20 16,25 7,20 7,12"
-                fill="none"
-                stroke="rgba(255,255,255,0.25)"
-                strokeWidth="0.8"
-              />
-            </svg>
-
-            {/* Word-mark */}
-            <span className="font-heading leading-none tracking-widest">
-              <span
-                style={{ color: '#cc0000', fontSize: '1.15rem', fontWeight: 900, letterSpacing: '0.08em' }}
-                className="group-hover:text-red-500 transition-colors duration-300"
-              >
-                RED HEX
-              </span>
-              {' '}
-              <span
-                style={{ color: '#ffffff', fontSize: '1.15rem', fontWeight: 700, letterSpacing: '0.06em' }}
-              >
-                INDUSTRIES
-              </span>
-            </span>
+            <Brand />
           </a>
 
-          {/* â”€â”€ Desktop Nav â”€â”€ */}
+          {/* ── Desktop Nav ── */}
           <nav
-            className="hidden lg:flex items-center gap-6 xl:gap-8 text-[0.7rem] uppercase tracking-wider font-semibold text-zinc-400 h-full"
+            className="hidden xl:flex items-center gap-3 ml-6 text-[0.7rem] uppercase tracking-wider font-semibold text-zinc-400 h-full flex-1"
             onMouseLeave={() => setActiveHoverMenu(null)}
           >
             {navLinks.map((link) => (
@@ -335,18 +186,7 @@ export default function Header() {
 
           {/* â”€â”€ Action Icons â”€â”€ */}
           <div className="flex items-center gap-4">
-            <button
-              className="text-brand-white hover:text-brand-gold transition-colors duration-brand"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              className="hidden sm:inline-block text-brand-white hover:text-brand-gold transition-colors duration-brand"
-              aria-label="Wishlist"
-            >
-              <Heart className="w-5 h-5" />
-            </button>
+
             <button
               onClick={(e) => { e.preventDefault(); openSidebar(); }}
               className="text-brand-white hover:text-brand-gold transition-colors duration-brand relative p-1 flex items-center justify-center group"
@@ -372,7 +212,7 @@ export default function Header() {
 
       {/* â”€â”€ Mobile Drawer Backdrop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
-        className={`fixed inset-0 bg-brand-black/80 backdrop-blur-sm z-50 transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 bg-brand-black/80 backdrop-blur-sm z-50 transition-opacity duration-300 xl:hidden ${
           isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={() => setIsDrawerOpen(false)}
@@ -380,7 +220,7 @@ export default function Header() {
 
       {/* â”€â”€ Mobile Slide-in Drawer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div
-        className={`fixed top-0 bottom-0 left-0 w-4/5 max-w-[360px] bg-[#0a0a0a] border-r border-zinc-900 z-[60] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-in-out lg:hidden ${
+        className={`fixed top-0 bottom-0 left-0 w-4/5 max-w-[360px] bg-[#0a0a0a] border-r border-zinc-900 z-[60] shadow-2xl flex flex-col justify-between transition-transform duration-300 ease-in-out xl:hidden ${
           isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -388,15 +228,7 @@ export default function Header() {
           {/* Drawer Header */}
           <div className="flex justify-between items-center pb-6 border-b border-zinc-900">
             <a href="/" className="flex items-center gap-2 leading-none" onClick={() => setIsDrawerOpen(false)}>
-              <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-                <polygon points="16,2 29,9 29,23 16,30 3,23 3,9" fill="#cc0000" stroke="#ff2222" strokeWidth="1" />
-                <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
-              </svg>
-              <span className="font-heading leading-none">
-                <span style={{ color: '#cc0000', fontSize: '0.95rem', fontWeight: 900, letterSpacing: '0.06em' }}>RED HEX</span>
-                {' '}
-                <span style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.04em' }}>INDUSTRIES</span>
-              </span>
+              <Brand />
             </a>
             <button
               onClick={() => setIsDrawerOpen(false)}
@@ -472,14 +304,7 @@ export default function Header() {
 
         {/* Drawer Footer */}
         <div className="border-t border-zinc-900 p-6 flex flex-col gap-3">
-          <a
-            href="/wishlist"
-            onClick={() => setIsDrawerOpen(false)}
-            className="flex items-center gap-3 text-xs text-zinc-400 hover:text-brand-white uppercase font-semibold tracking-wider transition-colors"
-          >
-            <Heart className="w-4 h-4 text-zinc-600" />
-            Wishlist
-          </a>
+
           <a
             href="/login"
             onClick={() => setIsDrawerOpen(false)}
@@ -497,4 +322,3 @@ export default function Header() {
     </>
   );
 }
-

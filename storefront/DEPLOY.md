@@ -1,61 +1,24 @@
-# RED HEX INDUSTRIES — Frontend Deployment (Vercel)
+# Tanaura Vercel-only deployment
 
-This is the **Next.js storefront** deploy guide. For the Vendure backend (Render/Railway + PostgreSQL), see the main guide: [../DEPLOY.md](../DEPLOY.md).
+This storefront contains its product catalogue and product images. It does not require the old Render/Vendure backend.
 
----
+## Deploy
 
-## 1. Push to GitHub
+1. Push the `main` branch of this repository. The connected Vercel project will create a deployment automatically.
+2. In Vercel, remove the old `NEXT_PUBLIC_VENDURE_SHOP_API` and `NEXT_PUBLIC_VENDURE_ADMIN_API` variables. They are no longer used.
+3. Open the deployed site and verify `/collections/welding-gloves` and a product page such as `/products/black-contrast-stitch-welding-gloves`.
 
-Push this app to GitHub:
+## Contact form
 
-- **Monorepo:** push the whole repo; set Vercel **Root Directory** to `storefront`
-- **Standalone repo:** push only the contents of `storefront/` to the repo root
+The contact form and product-enquiry form are Vercel serverless functions. To receive the submissions:
 
-## 2. Connect to Vercel
+1. Create a free form at [Formspree](https://formspree.io/).
+2. Copy the endpoint, for example `https://formspree.io/f/abcdwxyz`.
+3. In Vercel, add `FORMSPREE_ENDPOINT` with that endpoint as an environment variable for Production.
+4. Redeploy the project.
 
-1. [vercel.com](https://vercel.com) → **Add New Project**
-2. Import your GitHub repository
-3. **Root Directory:** `storefront` (if monorepo) or `.` (if standalone frontend repo)
+WhatsApp contact continues to work without any environment variable.
 
-## 3. Build settings
+## Adding future products
 
-| Setting | Value |
-|---------|-------|
-| Framework Preset | Next.js |
-| Build Command | `npm run build` |
-| Output Directory | *(default — leave empty)* |
-| Install Command | `npm install` |
-
-## 4. Environment variables
-
-**Settings → Environment Variables:**
-
-```env
-NEXT_PUBLIC_VENDURE_SHOP_API=https://your-backend.onrender.com/shop-api
-NEXT_PUBLIC_VENDURE_ADMIN_API=https://your-backend.onrender.com/admin-api
-```
-
-Replace with your live Render or Railway backend URL. No trailing slash.
-
-See `.env.example` in this folder.
-
-## 5. Deploy
-
-Click **Deploy**. Note your live URL, e.g. `https://redhex-industries.vercel.app`.
-
-## 6. Verify
-
-- [ ] Homepage loads
-- [ ] `/collections/*` pages work (no CORS errors in DevTools → Console)
-- [ ] `/admin/login` works with production superadmin credentials
-- [ ] After adding a product in admin, it appears on the storefront
-
-## 7. After backend is deployed
-
-Update env vars with the real backend URL and **Redeploy** on Vercel.
-
-Set `STOREFRONT_URL` on the backend to your Vercel URL so CORS allows requests.
-
----
-
-Full stack guide: [../DEPLOY.md](../DEPLOY.md)
+Add an image under `public/products/` and a product record in `lib/mockProducts.ts`, then commit and push. Vercel will publish the update automatically.

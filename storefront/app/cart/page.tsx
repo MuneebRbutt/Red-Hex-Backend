@@ -290,7 +290,8 @@ export default function CartPage() {
                         style={{
                           width: '72px',
                           height: '90px',
-                          objectFit: 'cover',
+                          objectFit: 'contain',
+                          objectPosition: 'center',
                           backgroundColor: '#111',
                           border: '1px solid rgba(255,255,255,0.06)',
                         }}
@@ -312,17 +313,6 @@ export default function CartPage() {
                       >
                         {item.name}
                       </Link>
-                      <span
-                        style={{
-                          fontFamily: "'Inter',sans-serif",
-                          fontSize: '0.72rem',
-                          color: 'rgba(255,255,255,0.4)',
-                          marginTop: '0.25rem',
-                          display: 'block',
-                        }}
-                      >
-                        ${item.price.toFixed(2)} each
-                      </span>
                     </div>
                   </div>
 
@@ -395,17 +385,7 @@ export default function CartPage() {
                     </button>
                   </div>
 
-                  {/* Total */}
-                  <span
-                    style={{
-                      fontFamily: "'Oswald',sans-serif",
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      color: '#fff',
-                    }}
-                  >
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </span>
+                  {/* Removed Total Price */}
 
                   {/* Remove */}
                   <button
@@ -477,46 +457,7 @@ export default function CartPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.25rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={summaryLabel}>Items ({totalItems})</span>
-                  <span style={summaryValue}>${subtotal.toFixed(2)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={summaryLabel}>Shipping</span>
-                  <span style={{ ...summaryValue, color: '#4caf50' }}>TBD</span>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  borderTop: '1px solid rgba(255,255,255,0.1)',
-                  paddingTop: '1rem',
-                  marginBottom: '1.5rem',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Inter',sans-serif",
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.6)',
-                  }}
-                >
-                  Estimated Total
-                </span>
-                <span
-                  style={{
-                    fontFamily: "'Oswald',sans-serif",
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: '#ffffff',
-                  }}
-                >
-                  ${subtotal.toFixed(2)}
-                </span>
               </div>
 
               {/* ── Contact Form ── */}

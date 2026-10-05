@@ -1,16 +1,16 @@
 export const SITE = {
-  name: 'RED HEX INDUSTRIES',
-  phone: '+92 311 4903270',
-  phoneHref: 'tel:+923114903270',
-  email: 'info@zeynindustry.com',
+  name: 'Tanaura Leather & Safety Gloves',
+  phone: '+92 322 2993833',
+  phoneHref: 'tel:+923222993833',
+  email: '',
   address: {
     line1: '1234 Industrial Ave.',
     line2: 'Lahore, PK 54000',
     full: '1234 Industrial Ave., Lahore, PK 54000',
   },
   whatsapp: {
-    number: '923114903270',
-    href: 'https://wa.me/923114903270',
+    number: '923222993833',
+    href: 'https://wa.me/923222993833',
   },
   social: {
     twitter: '#',
@@ -23,7 +23,7 @@ export const SITE = {
     name: 'Zain Arif',
     title: 'Founder & CEO',
     quote:
-      'Every collection we produce is a statement — not just of craftsmanship, but of the belief that what you wear defines how you perform.',
+      'Every collection we produce is a statement — not just of craftsmanship, but of the belief that every detail matters, from the first stitch to the final fit.',
     image:
       'https://placehold.co/800x1000/111111/333333?text=CEO+PORTRAIT',
   },

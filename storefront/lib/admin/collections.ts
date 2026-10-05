@@ -1,3 +1,4 @@
+import { isTanauraCategory } from '@/lib/categories';
 export type AdminCollection = {
   id: string;
   name: string;
@@ -8,7 +9,7 @@ export type AdminCollection = {
 const ROOT_SLUG = '__root_collection__';
 
 export function isMainCategory(collection: AdminCollection): boolean {
-  if (collection.slug === ROOT_SLUG) return false;
+  if (!isTanauraCategory(collection.slug)) return false;
   if (!collection.parent) return collection.name.toLowerCase() !== 'root';
   return collection.parent.slug === ROOT_SLUG;
 }

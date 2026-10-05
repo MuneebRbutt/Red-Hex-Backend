@@ -10,3 +10,4 @@ static/email/test-emails
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+.tmp/
